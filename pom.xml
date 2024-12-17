@@ -18,6 +18,12 @@
   </scm>
 
   <dependencies>
+
+    <dependency>
+      <groupId>com.coralblocks</groupId>
+      <artifactId>coralbench</artifactId>
+      <version>1.2.1</version>
+    </dependency>
 	  
     <dependency>
       <groupId>net.java.dev.jna</groupId>
@@ -137,9 +143,16 @@
     </plugins>
   </build>
 
+  <repositories>
+    <repository>
+        <id>github-coralbench</id>
+        <url>https://maven.pkg.github.com/coralblocks/CoralBench</url>
+    </repository>
+  </repositories>
+
   <distributionManagement>
     <repository>
-      <id>github-cb</id>
+      <id>github-coralpool</id>
       <name>GitHub Apache Maven Packages</name>
       <url>https://maven.pkg.github.com/coralblocks/CoralPool</url>
       <layout>default</layout>
