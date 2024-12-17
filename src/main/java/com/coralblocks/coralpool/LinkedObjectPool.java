@@ -24,8 +24,12 @@ public class LinkedObjectPool<E> implements ObjectPool<E> {
 	private final Builder<E> builder;
 	
 	public LinkedObjectPool(int preloadCount, Builder<E> builder) {
+		this(preloadCount * 2, preloadCount, builder);
+	}
+	
+	public LinkedObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
 		this.builder = builder;
-		this.linkedList = new LinkedObjectList<E>(preloadCount * 2);
+		this.linkedList = new LinkedObjectList<E>(initialCapacity);
 		for(int i = 0; i < preloadCount; i++) {
 			linkedList.addLast(builder.newInstance());
 		}

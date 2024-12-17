@@ -29,8 +29,8 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>();
 
 	@SuppressWarnings("unchecked")
-	public ArrayObjectPool(int maxCapacity, int preloadCount, Builder<E> builder) {
-		this.array = (E[]) new Object[maxCapacity];
+	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
+		this.array = (E[]) new Object[initialCapacity];
 		for(int i = 0; i < preloadCount; i++) {
 			this.array[i] = builder.newInstance();
 		}
