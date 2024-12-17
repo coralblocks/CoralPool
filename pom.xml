@@ -152,7 +152,7 @@
 
   <distributionManagement>
     <repository>
-      <id>github-coralpool</id>
+      <id>github-cb</id>
       <name>GitHub Apache Maven Packages</name>
       <url>https://maven.pkg.github.com/coralblocks/CoralPool</url>
       <layout>default</layout>
