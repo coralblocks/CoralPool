@@ -24,4 +24,5 @@ public interface ObjectPool<E> {
 	public void release(E e);
 
 	public Builder<E> getBuilder();
+	
 }

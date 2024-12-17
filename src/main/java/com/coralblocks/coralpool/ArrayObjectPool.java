@@ -27,7 +27,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	private int pointer = 0;
 	private final Builder<E> builder;
 	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>();
-	
+
 	@SuppressWarnings("unchecked")
 	public ArrayObjectPool(int maxCapacity, int preloadCount, Builder<E> builder) {
 		this.array = (E[]) new Object[maxCapacity];
@@ -36,21 +36,24 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		}
 		this.builder = builder;
 	}
+	
+	private final void grow() {
+		
+        int newLength = array.length + (array.length / 2);
+
+        @SuppressWarnings("unchecked")
+		E[] newArray = (E[]) new Object[newLength];
+        
+        oldArrays.add(new SoftReference<E[]>(this.array)); // delay gc
+        
+        this.array = newArray;
+	}
 
 	@Override
 	public final E get() {
 		
 		if (pointer == array.length) {
-
-			int oldLength = array.length;
-            int newLength = oldLength + (oldLength / 2);
-
-            @SuppressWarnings("unchecked")
-			E[] newArray = (E[]) new Object[newLength];
-            
-            oldArrays.add(new SoftReference<E[]>(this.array)); // delay gc
-            
-            this.array = newArray;
+			grow();
 		}
 		
 		E toReturn = this.array[pointer];
