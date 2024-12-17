@@ -15,36 +15,44 @@
  */
 package com.coralblocks.coralpool;
 
+import java.lang.ref.SoftReference;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.coralblocks.coralpool.util.Builder;
 
 public class ArrayObjectPool<E> implements ObjectPool<E> {
 	
-	private final E[] array;
+	private E[] array;
 	private int pointer = 0;
-	private final LeakListener<E> listener;
 	private final Builder<E> builder;
-	private int leaks = 0;
+	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>();
 	
 	@SuppressWarnings("unchecked")
-	public ArrayObjectPool(int maxCapacity, int preloadCount, Builder<E> builder, LeakListener<E> listener) {
+	public ArrayObjectPool(int maxCapacity, int preloadCount, Builder<E> builder) {
 		this.array = (E[]) new Object[maxCapacity];
 		for(int i = 0; i < preloadCount; i++) {
 			this.array[i] = builder.newInstance();
 		}
 		this.builder = builder;
-		this.listener = listener;
 	}
 
 	@Override
 	public final E get() {
+		
 		if (pointer == array.length) {
-			E toReturn = builder.newInstance();
-			if (listener != null) {
-				listener.onLeaked(this, toReturn);
-			}
-			leaks++;
-			return toReturn;
+
+			int oldLength = array.length;
+            int newLength = oldLength + (oldLength / 2);
+
+            @SuppressWarnings("unchecked")
+			E[] newArray = (E[]) new Object[newLength];
+            
+            oldArrays.add(new SoftReference<E[]>(this.array)); // delay gc
+            
+            this.array = newArray;
 		}
+		
 		E toReturn = this.array[pointer];
 		if (toReturn == null) {
 			toReturn = builder.newInstance();
@@ -60,11 +68,6 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		if (pointer > 0) {
 			this.array[--pointer] = object;
 		}
-	}
-
-	@Override
-	public int getLeaks() {
-		return leaks;
 	}
 
 	@Override

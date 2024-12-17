@@ -31,11 +31,6 @@ public class LinkedObjectPool<E> implements ObjectPool<E> {
 	}
 
 	@Override
-	public int getLeaks() {
-		return 0;
-	}
-
-	@Override
 	public Builder<E> getBuilder() {
 		return builder;
 	}

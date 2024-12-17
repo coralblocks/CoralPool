@@ -23,12 +23,5 @@ public interface ObjectPool<E> {
 
 	public void release(E e);
 
-	public int getLeaks();
-	
 	public Builder<E> getBuilder();
-	
-	public static interface LeakListener<E> {
-		
-		public void onLeaked(ObjectPool<E> pool, E object);
-	}
 }
