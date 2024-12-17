@@ -105,9 +105,4 @@ public class LinkedObjectPool<E> implements ObjectPool<E> {
 	public void release(E e) {
 		linkedList.addLast(e);
 	}
-
-	@Override
-	public Builder<E> getBuilder() {
-		return builder;
-	}
 }

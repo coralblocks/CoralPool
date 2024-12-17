@@ -145,9 +145,4 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 			discarded.add(soft);
 		}
 	}
-
-	@Override
-	public Builder<E> getBuilder() {
-		return builder;
-	}
 }

@@ -44,12 +44,4 @@ public interface ObjectPool<E> {
 	 * @param e the instance to be returned to the pool
 	 */
 	public void release(E e);
-
-	/**
-	 * Return the builder being used by this object pool
-	 * 
-	 * @return the builder being used by this pool
-	 */
-	public Builder<E> getBuilder();
-	
 }
