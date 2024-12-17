@@ -49,6 +49,10 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		this.builder = builder;
 	}
 	
+	int getArrayLength() {
+		return this.array.length;
+	}
+	
 	private final void grow() {
 		
         int newLength = array.length + (array.length / 2);

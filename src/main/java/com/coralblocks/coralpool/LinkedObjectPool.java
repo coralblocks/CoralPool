@@ -42,6 +42,10 @@ public class LinkedObjectPool<E> implements ObjectPool<E> {
 			linkedList.addLast(builder.newInstance());
 		}
 	}
+	
+	int getLinkedListSize() {
+		return this.linkedList.size();
+	}
 
 	@Override
 	public E get() {

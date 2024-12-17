@@ -11,7 +11,7 @@ public class ObjectPoolTest {
     @Test
     public void testLinkedObjectPoolBasicGetRelease() {
     	
-        ObjectPool<StringBuilder> pool = new LinkedObjectPool<>(5, Builder.createBuilder(StringBuilder.class));
+        ObjectPool<StringBuilder> pool = new LinkedObjectPool<StringBuilder>(5, Builder.createBuilder(StringBuilder.class));
 
         // We preloaded 5 instances
         StringBuilder sb1 = pool.get();
@@ -26,7 +26,7 @@ public class ObjectPoolTest {
     @Test
     public void testLinkedObjectPoolNewInstancesWhenEmpty() {
     	
-        ObjectPool<StringBuilder> pool = new LinkedObjectPool<>(2, Builder.createBuilder(StringBuilder.class));
+        ObjectPool<StringBuilder> pool = new LinkedObjectPool<StringBuilder>(2, Builder.createBuilder(StringBuilder.class));
         
         StringBuilder s1 = pool.get();
         StringBuilder s2 = pool.get();
@@ -42,7 +42,7 @@ public class ObjectPoolTest {
     @Test
     public void testLinkedObjectPoolReleaseOrder() {
     	
-        ObjectPool<StringBuilder> pool = new LinkedObjectPool<>(2, Builder.createBuilder(StringBuilder.class));
+        ObjectPool<StringBuilder> pool = new LinkedObjectPool<StringBuilder>(2, Builder.createBuilder(StringBuilder.class));
         StringBuilder s1 = pool.get();
         StringBuilder s2 = pool.get();
 
@@ -64,7 +64,7 @@ public class ObjectPoolTest {
     public void testArrayObjectPoolPreload() {
     	
         // Preload 5 objects
-        ObjectPool<StringBuilder> pool = new ArrayObjectPool<>(10, 5, Builder.createBuilder(StringBuilder.class));
+        ObjectPool<StringBuilder> pool = new ArrayObjectPool<StringBuilder>(10, 5, Builder.createBuilder(StringBuilder.class));
         
         // First 5 gets should give us the 5 preloaded objects
         StringBuilder[] preloaded = new StringBuilder[5];
@@ -89,7 +89,7 @@ public class ObjectPoolTest {
     @Test
     public void testArrayObjectPoolReleaseAndReuse() {
     	
-        ObjectPool<StringBuilder> pool = new ArrayObjectPool<>(10, 5, Builder.createBuilder(StringBuilder.class));
+        ObjectPool<StringBuilder> pool = new ArrayObjectPool<StringBuilder>(10, 5, Builder.createBuilder(StringBuilder.class));
         
         StringBuilder s1 = pool.get();
         StringBuilder s2 = pool.get();
@@ -108,7 +108,7 @@ public class ObjectPoolTest {
     public void testArrayObjectPoolGrowth() {
     	
         // Start with capacity 4, preload 4
-        ObjectPool<StringBuilder> pool = new ArrayObjectPool<>(4, 4, Builder.createBuilder(StringBuilder.class));
+        ObjectPool<StringBuilder> pool = new ArrayObjectPool<StringBuilder>(4, 4, Builder.createBuilder(StringBuilder.class));
         
         // Take all 4
         StringBuilder[] initial = new StringBuilder[4];
@@ -144,7 +144,7 @@ public class ObjectPoolTest {
     @Test
     public void testArrayObjectPoolInvertingRelease() {
     	
-        ObjectPool<StringBuilder> pool = new ArrayObjectPool<>(5, 2, Builder.createBuilder(StringBuilder.class));
+        ObjectPool<StringBuilder> pool = new ArrayObjectPool<StringBuilder>(5, 2, Builder.createBuilder(StringBuilder.class));
         
         // Initially 2 preloaded
         StringBuilder s1 = pool.get();
@@ -183,7 +183,7 @@ public class ObjectPoolTest {
     public void testArrayObjectPoolReleasingWhenEmpty() {
         
         // If we release when empty (pointer=0), it should not fail:
-    	ObjectPool<StringBuilder> pool = new ArrayObjectPool<>(5, 0, Builder.createBuilder(StringBuilder.class));
+    	ObjectPool<StringBuilder> pool = new ArrayObjectPool<StringBuilder>(5, 0, Builder.createBuilder(StringBuilder.class));
         // pointer=0, release something not from pool:
         pool.release(new StringBuilder()); // should not fail, just ignore
     }
@@ -191,7 +191,7 @@ public class ObjectPoolTest {
     @Test
     public void testManyGetsAndReleases() {
     	
-        ObjectPool<StringBuilder> pool = new ArrayObjectPool<>(10, 5, Builder.createBuilder(StringBuilder.class));
+        ObjectPool<StringBuilder> pool = new ArrayObjectPool<StringBuilder>(10, 5, Builder.createBuilder(StringBuilder.class));
         // Take all 5 preloaded
         StringBuilder[] arr = new StringBuilder[5];
         for (int i = 0; i < 5; i++) {
@@ -218,5 +218,66 @@ public class ObjectPoolTest {
         StringBuilder x = new StringBuilder();
         pool.release(x);
         assertSame(x, pool.get());
+    }
+    
+    @Test
+    public void testLinkedObjectPoolLinkedListSize() {
+    	
+        // Preload 2 objects
+        LinkedObjectPool<StringBuilder> pool = new LinkedObjectPool<StringBuilder>(2, 2, Builder.createBuilder(StringBuilder.class));
+        
+        // Initially linked list should have size=2 (from preload)
+        assertEquals(2, pool.getLinkedListSize());
+        
+        // Take both objects out
+        StringBuilder s1 = pool.get();
+        StringBuilder s2 = pool.get();
+        
+        // Now the linked list is empty
+        assertEquals(0, pool.getLinkedListSize());
+        
+        // Release them back
+        pool.release(s1);
+        pool.release(s2);
+
+        // Should have size=2 again
+        assertEquals(2, pool.getLinkedListSize());
+        
+        // Release even more objects (completely new ones)
+        // This shows we can keep adding to the linked list
+        pool.release(new StringBuilder());
+        pool.release(new StringBuilder());
+        pool.release(new StringBuilder());
+        
+        // Now size should be 5 (original 2 + 3 newly released)
+        assertEquals(5, pool.getLinkedListSize());
+    }
+
+    @Test
+    public void testArrayObjectPoolGrowArrayLength() {
+    	
+        // Create an array pool with a small initial capacity (4) and preload all of them
+        ArrayObjectPool<StringBuilder> pool = new ArrayObjectPool<StringBuilder>(4, 4, Builder.createBuilder(StringBuilder.class));
+        
+        // Initially array length should be 4
+        assertEquals(4, pool.getArrayLength());
+        
+        // Take all 4 objects
+        for (int i = 0; i < 4; i++) {
+            pool.get();
+        }
+        
+        assertEquals(4, pool.getArrayLength());
+        
+        // Now the pool is empty, next get should cause a grow
+        pool.get(); // triggers growth by 50%, oldLength=4, newLength=6
+        assertEquals(6, pool.getArrayLength());
+        
+        pool.get();
+        assertEquals(6, pool.getArrayLength());
+        
+        pool.get();
+        // Now oldLength was 6, so new length after grow should be 6 + 3 = 9
+        assertEquals(9, pool.getArrayLength());
     }
 }
