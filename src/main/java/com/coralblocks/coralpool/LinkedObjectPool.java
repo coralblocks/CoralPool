@@ -36,10 +36,17 @@ public class LinkedObjectPool<E> implements ObjectPool<E> {
 	}
 	
 	public LinkedObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
+		check(initialCapacity, preloadCount);
 		this.builder = builder;
 		this.linkedList = new LinkedObjectList<E>(initialCapacity);
 		for(int i = 0; i < preloadCount; i++) {
 			linkedList.addLast(builder.newInstance());
+		}
+	}
+	
+	private void check(int initialCapacity, int preloadCount) {
+		if (preloadCount > initialCapacity) {
+			throw new IllegalArgumentException("preloadCount (" + preloadCount + ") cannot be bigger than initialCapacity (" + initialCapacity + ")");
 		}
 	}
 	

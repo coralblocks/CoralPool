@@ -43,11 +43,18 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 
 	@SuppressWarnings("unchecked")
 	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
+		check(initialCapacity, preloadCount);
 		this.array = (E[]) new Object[initialCapacity];
 		for(int i = 0; i < preloadCount; i++) {
 			this.array[i] = builder.newInstance();
 		}
 		this.builder = builder;
+	}
+	
+	private void check(int initialCapacity, int preloadCount) {
+		if (preloadCount > initialCapacity) {
+			throw new IllegalArgumentException("preloadCount (" + preloadCount + ") cannot be bigger than initialCapacity (" + initialCapacity + ")");
+		}
 	}
 	
 	int getArrayLength() {
