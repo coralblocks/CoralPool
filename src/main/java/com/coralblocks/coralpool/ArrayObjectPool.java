@@ -26,7 +26,8 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	private E[] array;
 	private int pointer = 0;
 	private final Builder<E> builder;
-	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>();
+	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>(16);
+	private final List<SoftReference<E>> discarded = new ArrayList<SoftReference<E>>(64);
 	
 	public ArrayObjectPool(int initialCapacity, Class<E> klass) {
 		this(initialCapacity, Builder.createBuilder(klass));
@@ -86,6 +87,9 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	public final void release(E object) {
 		if (pointer > 0) {
 			this.array[--pointer] = object;
+		} else {
+			SoftReference<E> soft = new SoftReference<E>(object);
+			discarded.add(soft);
 		}
 	}
 
