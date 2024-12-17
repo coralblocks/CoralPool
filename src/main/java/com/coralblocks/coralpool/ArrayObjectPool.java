@@ -21,6 +21,22 @@ import java.util.List;
 
 import com.coralblocks.coralpool.util.Builder;
 
+/**
+ * <p>An {@link ObjectPool} backed by an internal array. The pool can grow indefinitely by serving new instances to the outside world, in other words,
+ * you can keep calling {@link get()} to receive new instances until the pool is empty. When that happens the internal array will grow to accommodate newly created instances.
+ * Basically the pool can never return a <code>null</code> object through its {@link get()} method.</p>
+ * 
+ * <p>Note that releasing an instance back to a full pool, for the case that the instance was created externally and it is now pushed into the pool, causes the
+ * instance to be ignored and stored as a {@link java.lang.ref.SoftReference}. This delays the instance from being garbage collected. Ideally you should never have to create
+ * an instance externally, in other words, if you need a new instance you should ask the pool for one instead of creating one yourself and later attempting to
+ * release it back to the pool.</p>
+ * 
+ *  <p>Also note that when the pool grows, a new larger internal array is allocated. The previous one is also stored as a {@link java.lang.ref.SoftReference} to
+ *  delay it from being garbage collected. A {@link java.lang.ref.SoftReference} postpones the GC activity until the JVM runs out of memory, which hopefully will
+ *  never happen.</p>
+ *
+ * @param <E> the object being served by this object pool
+ */
 public class ArrayObjectPool<E> implements ObjectPool<E> {
 	
 	private E[] array;
@@ -29,18 +45,48 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>(16);
 	private final List<SoftReference<E>> discarded = new ArrayList<SoftReference<E>>(64);
 	
+	/**
+	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
+	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
+	 * 
+	 * @param initialCapacity the initial capacity of the pool
+	 * @param klass the class used as the builder of the pool
+	 */
 	public ArrayObjectPool(int initialCapacity, Class<E> klass) {
 		this(initialCapacity, Builder.createBuilder(klass));
 	}	
 	
+	/**
+	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
+	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
+	 * 
+	 * @param initialCapacity the initial capacity of the pool
+	 * @param builder the builder of the pool
+	 */
 	public ArrayObjectPool(int initialCapacity, Builder<E> builder) {
 		this(initialCapacity, initialCapacity, builder);
 	}
 	
+	/**
+	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The pool will be populated with the given preload count,
+	 * in other words, the pool will preallocate <code>preloadCount</code> instances at startup.
+	 *   
+	 * @param initialCapacity the initial capacity of the pool
+	 * @param preloadCount the number of instances to preallocate at startup
+	 * @param klass the class used as the builder of the pool
+	 */
 	public ArrayObjectPool(int initialCapacity, int preloadCount, Class<E> klass) {
 		this(initialCapacity, preloadCount, Builder.createBuilder(klass));
 	}
 
+	/**
+	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The pool will be populated with the given preload count,
+	 * in other words, the pool will preallocate <code>preloadCount</code> instances at startup.
+	 *   
+	 * @param initialCapacity the initial capacity of the pool
+	 * @param preloadCount the number of instances to preallocate at startup
+	 * @param builder the builder of the pool
+	 */
 	@SuppressWarnings("unchecked")
 	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
 		check(initialCapacity, preloadCount);
@@ -72,7 +118,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
         
         this.array = newArray;
 	}
-
+	
 	@Override
 	public final E get() {
 		
