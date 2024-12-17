@@ -27,6 +27,18 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	private int pointer = 0;
 	private final Builder<E> builder;
 	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>();
+	
+	public ArrayObjectPool(int initialCapacity, Class<E> klass) {
+		this(initialCapacity, Builder.createBuilder(klass));
+	}	
+	
+	public ArrayObjectPool(int initialCapacity, Builder<E> builder) {
+		this(initialCapacity, initialCapacity, builder);
+	}
+	
+	public ArrayObjectPool(int initialCapacity, int preloadCount, Class<E> klass) {
+		this(initialCapacity, preloadCount, Builder.createBuilder(klass));
+	}
 
 	@SuppressWarnings("unchecked")
 	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
