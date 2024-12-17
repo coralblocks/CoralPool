@@ -15,17 +15,17 @@
  */
 package com.coralblocks.coralpool;
 
+import com.coralblocks.coralpool.util.Builder;
+
 public interface ObjectPool<E> {
 
 	public E get();
 
 	public void release(E e);
 
-	public int getSize();
-
 	public int getLeaks();
 	
-	public E newInstance();
+	public Builder<E> getBuilder();
 	
 	public static interface LeakListener<E> {
 		
