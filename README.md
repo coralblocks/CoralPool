@@ -52,7 +52,7 @@ Note that releasing an instance back to a full pool, _for the case that an extra
 instance to be ignored and stored as a [SoftReference](https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/ref/SoftReference.html). This delays the instance from being garbage collected.
 Ideally you should never have to create an extra instance externally, in other words, if you need a new instance you should ask the pool for one instead of creating one yourself and later attempting to release it to the pool.
  
-Also note that when the pool grows, a new larger internal array is allocated. Instead of discarding the previous one, it is also stored as a `SoftReference` to
+Also note that when the pool grows, a new larger internal array is allocated [without the need to perform any copying](src/main/java/com/coralblocks/coralpool/ArrayObjectPool.java#L125). Instead of discarding the previous array, it is also stored as a `SoftReference` to
 delay it from being garbage collected. A `SoftReference` postpones the GC activity until the JVM is running out of memory, which should never happen.
 If you want you can release the soft references to the GC through the public method `releaseSoftReferences()` of `ArrayObjectPool`.
 
