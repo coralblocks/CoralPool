@@ -57,6 +57,8 @@ public class ObjectPoolBench2 {
 			System.out.println("type=" + pool.getClass().getSimpleName() + 
 							   " initialCapacity=" + initialCapacity + " preloadCount=" + preloadCount + "\n");
 			
+			int callCount = 0;
+			
 			long start = System.nanoTime();
 			
 			Object obj = null;
@@ -68,11 +70,12 @@ public class ObjectPoolBench2 {
 				for(int x = 0; x < i; x++) {
 					pool.release(obj);
 				}
+				callCount += 2 * i;
 			}
 			
 			long time = System.nanoTime() - start;
 			
-			System.out.println(FORMATTER.format(time) + " nanoseconds\n");
+			System.out.println(FORMATTER.format(time) + " nanoseconds for " + callCount + " calls\n");
 		}
 	}
 }
