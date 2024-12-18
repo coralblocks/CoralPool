@@ -107,6 +107,14 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		return this.array.length;
 	}
 	
+	/**
+	 * If the pool is holding on to references (to delay GC) through {@link java.lang.ref.SoftReference} clear them now.
+	 */
+	public final void clearSoftReferences() {
+		oldArrays.clear();
+		discarded.clear();
+	}
+	
 	private final void grow() {
 		
         int newLength = array.length + (array.length / 2);
