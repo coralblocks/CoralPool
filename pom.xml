@@ -20,8 +20,8 @@
   <dependencies>
 
     <dependency>
-      <groupId>com.coralblocks</groupId>
-      <artifactId>coralbench</artifactId>
+      <groupId>com.github.coralblocks</groupId>
+      <artifactId>CoralBench</artifactId>
       <version>1.2.1</version>
     </dependency>
 	  
@@ -144,6 +144,10 @@
   </build>
 
   <repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
     <repository>
         <id>github-coralbench</id>
         <url>https://maven.pkg.github.com/coralblocks/CoralBench</url>
