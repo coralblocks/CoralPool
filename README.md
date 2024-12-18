@@ -19,7 +19,8 @@ final int initialCapacity = 100;
 // the pool can allocate more instances later, but it will start with 50 instances
 final int preloadCount = 50;
 
-// the pool can use a Builder, but it can also take a Class for creating instances through the default constructor
+// the pool can use a Builder, but it can also take a Class for creating instances through
+// the default constructor
 final Class<StringBuilder> klass = StringBuilder.class;
 
 // Create your object pool
