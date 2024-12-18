@@ -60,7 +60,11 @@ If you want you can release the soft references to the GC through the public met
 
 As detailed above, `ArrayObjectPool` has some drawbacks when compared to `LinkedObjectPool`, but it is slightly faster. You can find the benchmarks [here](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/bench/ObjectPoolBench1.java) and [here](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/bench/ObjectPoolBench2.java). Below the results:
 
-### ObjectPoolBenchmark1:
+<details>
+  <summary> ObjectPoolBenchmark1:</summary>
+
+<br/>
+
 ```
 $ java -verbose:gc -XX:+AlwaysPreTouch -Xms4g -Xmx4g -XX:NewSize=512m \
         -XX:MaxNewSize=1024m -cp target/classes:target/coralpool-all.jar \
@@ -111,8 +115,21 @@ Avg Time: 27.020 nanos | Min Time: 17.000 nanos | Max Time: 25.742 micros
 99.99% = [avg: 26.000 nanos, max: 267.000 nanos]
 99.999% = [avg: 26.000 nanos, max: 737.000 nanos]
 ```
-### ObjectPoolBenchmark2:
-The latency difference is small (few nanoseconds) but if you call `get()` and `release(E)` thounsands of times it can add up.
+</details>
+
+```
+ArrayObjectPool     get()   => Avg: 17 ns | Min: 14 ns | 99.9% = [avg: 17 ns, max: 30 ns]
+                 release(E) => Avg: 17 ns | Min: 14 ns | 99.9% = [avg: 17 ns, max: 29 ns]
+
+LinkedObjectPool    get()   => Avg: 25 ns | Min: 16 ns | 99.9% = [avg: 24 ns, max: 146 ns]
+                 release(E) => Avg: 27 ns | Min: 17 ns | 99.9% = [avg: 26 ns, max: 155 ns]
+```
+
+<details>
+  <summary> ObjectPoolBenchmark2:</summary>
+
+<br/>
+
 ```
 $ java -verbose:gc -XX:+AlwaysPreTouch -Xms4g -Xmx4g -XX:NewSize=512m \
         -XX:MaxNewSize=1024m -cp target/classes:target/coralpool-all.jar \
@@ -126,4 +143,12 @@ type=ArrayObjectPool initialCapacity=100 preloadCount=50
 type=LinkedObjectPool initialCapacity=100 preloadCount=50
 
 638,698 nanoseconds for 10100 calls
+```
+</details>
+
+The latency difference is small (few nanoseconds) but if you call `get()` and `release(E)` thounsands of times it can add up.
+```
+ArrayObjectPool   => 401,221 nanoseconds for 10100 calls
+
+LinkedObjectPool  => 638,698 nanoseconds for 10100 calls
 ```
