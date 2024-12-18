@@ -146,7 +146,7 @@ type=LinkedObjectPool initialCapacity=100 preloadCount=50
 ```
 </details>
 
-The latency difference is small (few nanoseconds) but if you call `get()` and `release(E)` thounsands of times it can add up.
+The latency difference is small (few nanoseconds) but if you call `get()` and `release(E)` thousands of times it can add up.
 ```
 ArrayObjectPool   => 401,221 nanoseconds for 10100 calls
 
