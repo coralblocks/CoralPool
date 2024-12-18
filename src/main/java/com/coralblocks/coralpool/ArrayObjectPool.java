@@ -108,9 +108,9 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	}
 	
 	/**
-	 * If the pool is holding on to references (to delay GC) through {@link java.lang.ref.SoftReference} clear them now.
+	 * If the pool is holding on to references (to delay GC) through {@link java.lang.ref.SoftReference}s release them now to the GC.
 	 */
-	public final void clearSoftReferences() {
+	public final void releaseSoftReferences() {
 		oldArrays.clear();
 		discarded.clear();
 	}
