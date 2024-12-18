@@ -122,6 +122,8 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
         @SuppressWarnings("unchecked")
 		E[] newArray = (E[]) new Object[newLength];
         
+        // No need to perform any copying here as the previous array will have only nulls
+        
         oldArrays.add(new SoftReference<E[]>(this.array)); // delay gc
         
         this.array = newArray;
