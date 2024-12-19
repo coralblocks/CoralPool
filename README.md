@@ -1,5 +1,5 @@
 # CoralPool
-Multiple _fast_ implementations of object pooling classes designed to efficiently reuse mutable objects, reducing memory allocations and eliminating the garbage collector _overhead_.
+CoralPool is a _fast_, lightweight and garbage-free implementation of a Java _object pool_. It is designed to efficiently reuse mutable objects, minimizing the creation of _short-lived_ objects that would otherwise be discarded and processed by the garbage collector. It can gradually grow to accommodate more instances by allocating new objects internally and/or by accepting new objects through the `release(E)` method.
 
 ## ObjectPool Interface
 ```java
