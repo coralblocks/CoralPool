@@ -53,7 +53,9 @@ When the pool grows, a larger internal array is allocated. Instead of discarding
 
 ## Benchmarks
 
-As detailed above, `ArrayObjectPool` has the drawback of having to allocate a new array to grow, but it is slightly faster than the `LinkedObjectPool`. You can find the benchmarks [here](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/bench/ObjectPoolBench1.java) and [here](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/bench/ObjectPoolBench2.java). We have used [CoralBench](https://www.github.com/coralblocks/CoralBench) for our benchmarks. Below the results:
+<pre><b>Note:</b> We are using <a href="https://www.github.com/coralblocks/CoralBench">CoralBench</a> for the benchmarks. Click on the arrows to expand the full results.</pre>
+
+As detailed above, `ArrayObjectPool` has the drawback of having to allocate a new array to grow, but it is slightly faster than the `LinkedObjectPool`. You can find the benchmarks [here](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/bench/ObjectPoolBench1.java) and [here](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/bench/ObjectPoolBench2.java). Below the results:
 
 <details>
   <summary> ObjectPoolBenchmark1:</summary>
