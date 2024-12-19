@@ -285,14 +285,14 @@ public class ObjectPoolTest {
         assertEquals(4, pool.getArrayLength());
         
         // Now the pool is empty, next get should cause a grow
-        pool.get(); // triggers growth by 50%, oldLength=4, newLength=6
-        assertEquals(6, pool.getArrayLength());
+        pool.get(); // triggers growth by 100%, oldLength=4, newLength=8
+        assertEquals(8, pool.getArrayLength());
+        
+        for(int i = 0; i < 3; i++) pool.get(); // get remaining 3
+        assertEquals(8, pool.getArrayLength());
         
         pool.get();
-        assertEquals(6, pool.getArrayLength());
-        
-        pool.get();
-        // Now oldLength was 6, so new length after grow should be 6 + 3 = 9
-        assertEquals(9, pool.getArrayLength());
+        // Now oldLength was 8, so new length after grow should be 16
+        assertEquals(16, pool.getArrayLength());
     }
 }

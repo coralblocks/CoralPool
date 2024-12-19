@@ -43,7 +43,6 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	private int pointer = 0;
 	private final Builder<E> builder;
 	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>(16);
-	private final List<SoftReference<E>> discarded = new ArrayList<SoftReference<E>>(64);
 	
 	/**
 	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
@@ -107,33 +106,49 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		return this.array.length;
 	}
 	
+	E getArrayElement(int index) {
+		return this.array[index];
+	}
+	
 	/**
 	 * If the pool is holding on to references (to delay GC) through {@link java.lang.ref.SoftReference}s release them now to the GC.
 	 */
 	public final void releaseSoftReferences() {
 		oldArrays.clear();
-		discarded.clear();
 	}
 	
-	private final void grow() {
-		
-        int newLength = array.length + (array.length / 2);
+	private final int grow(boolean copyAndShift) {
 
-        @SuppressWarnings("unchecked")
+		// NOTE: don't change because of the nullifying logic below!
+		// It must be AT LEAST double size
+		int newLength = 2 * array.length;
+
+		@SuppressWarnings("unchecked")
 		E[] newArray = (E[]) new Object[newLength];
-        
-        // No need to perform any copying here as the previous array will have only nulls
-        
-        oldArrays.add(new SoftReference<E[]>(this.array)); // delay gc
-        
-        this.array = newArray;
+		
+		int offset = this.array.length;
+
+		if (copyAndShift) {
+			offset = newArray.length - this.array.length; // place at the very end
+			System.arraycopy(this.array, 0, newArray, offset, this.array.length);
+			// NULLIFYING LOGIC HERE: (newArray will contain nulls at the front)
+			System.arraycopy(newArray, 0, this.array, 0, this.array.length); // null out previous array
+		} else {
+			// No need to perform any copying here as the previous array will have only nulls!
+		}
+
+		oldArrays.add(new SoftReference<E[]>(this.array)); // delay gc
+
+		this.array = newArray;
+		
+		return offset;
 	}
 	
 	@Override
 	public final E get() {
 		
 		if (pointer == array.length) {
-			grow();
+			/*pointer = */grow(false); // pointer returned will be array length anyway!
 		}
 		
 		E toReturn = this.array[pointer];
@@ -148,11 +163,9 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	
 	@Override
 	public final void release(E object) {
-		if (pointer > 0) {
-			this.array[--pointer] = object;
-		} else {
-			SoftReference<E> soft = new SoftReference<E>(object);
-			discarded.add(soft);
+		if (pointer == 0) {
+			pointer = grow(true);
 		}
+		this.array[--pointer] = object;
 	}
 }
