@@ -22,18 +22,16 @@ import java.util.List;
 import com.coralblocks.coralpool.util.Builder;
 
 /**
- * <p>An {@link ObjectPool} backed by an internal array. The pool can grow indefinitely by serving new instances to the outside world, in other words,
- * you can keep calling {@link get()} to receive new instances until the pool is empty. When that happens the internal array will grow to accommodate newly created instances.
- * Basically the pool can never return a <code>null</code> object through its {@link get()} method.</p>
- * 
- * <p>Note that releasing an instance back to a full pool, for the case that the instance was created externally and it is now pushed into the pool, causes the
- * instance to be ignored and stored as a {@link java.lang.ref.SoftReference}. This delays the instance from being garbage collected. Ideally you should never have to create
- * an instance externally, in other words, if you need a new instance you should ask the pool for one instead of creating one yourself and later attempting to
- * release it back to the pool.</p>
- * 
- *  <p>Also note that when the pool grows, a new larger internal array is allocated. The previous one is also stored as a {@link java.lang.ref.SoftReference} to
- *  delay it from being garbage collected. A {@link java.lang.ref.SoftReference} postpones the GC activity until the JVM runs out of memory, which hopefully will
- *  never happen.</p>
+ *  <p>An {@link ObjectPool} backed by an internal array. The pool doubles its size with each expansion, allowing you to continuously call {@link get()} to 
+ *  receive new instances. Essentially, the pool will never return a <code>null</code> object through its {@link get()} method.</p>
+ *  
+ *  <p>You can also add instances from external sources, that is, instances not created by the pool, using the {@link release(E)} method. If the pool is 
+ *  full when you call {@link release(E)}, it will grow to accommodate the new instance.</p>
+ *  
+ *  <p>When the pool grows, a larger internal array is allocated. Instead of discarding the previous array, it is stored 
+ *  as a {@link java.lang.ref.SoftReference} to delay garbage collection. A <code>SoftReference</code> allows the JVM to postpone garbage collection until 
+ *  memory is critically low, which should rarely occur. If needed, you can manually release these soft references by 
+ *  calling the {@link releaseSoftReferences()} method from the pool.</p>
  *
  * @param <E> the object being served by this object pool
  */
