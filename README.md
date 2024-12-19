@@ -38,10 +38,10 @@ pool.release(sb);
 
 ## LinkedObjectPool
 
-An `ObjectPool` backed by an internal linked-list. The pool can grow indefinitely by adding new nodes to the list. You can call `get()`
-forever and the pool will keep returning newly allocated instances through its internal `Builder<E>`.
-Basically the pool can never return a `null` object through its `get()` method. 
-You can also add new instances from external sources, that is, instances not created by the pool, using the `release(E)` method. If the pool is full when you call `release(E)`, it will expand to accommodate the instance.
+An `ObjectPool` backed by an internal linked-list. The pool can grow indefinitely by adding new nodes to the list. You can call `get()` forever and the pool will keep returning newly allocated instances through its internal `Builder<E>`. Basically the pool can never return a `null` object through its `get()` method.
+
+You can also add new instances from external sources, that is, instances not created by the pool, using the `release(E)` method.
+If the pool is full when you call `release(E)`, it will expand the underlying linked list by adding a new node to accommodate the instance.
 
 ## ArrayObjectPool
 
