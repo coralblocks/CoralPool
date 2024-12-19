@@ -18,7 +18,7 @@ package com.coralblocks.coralpool;
 import com.coralblocks.coralpool.util.Builder;
 
 /**
- * <p>The contract of an object pool that can dispense instances through {@link get()} and reclaim instances through {@link release(E)}.</p>
+ * <p>The contract of an object pool that can dispense instances through {@link #get()} and reclaim instances through {@link #release(E)}.</p>
  * 
  * <p>The object pool can grow internally by creating more instances through its {@link Builder}.</p>
  * 

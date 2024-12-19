@@ -20,11 +20,11 @@ import com.coralblocks.coralpool.util.LinkedObjectList;
 
 /**
  * <p>An {@link ObjectPool} backed by an internal linked-list. The pool can grow gradually by adding new nodes to the list. 
- * You can call {@link get()} forever and the pool will keep returning newly allocated instances through its internal {@link Builder}. 
- * Basically the pool can never return a <code>null</code> object through its {@link get()} method.</p>
+ * You can call {@link #get()} forever and the pool will keep returning newly allocated instances through its internal {@link Builder}. 
+ * Basically the pool can never return a <code>null</code> object through its {@link #get()} method.</p>
  * 
- * <p>You can also add new instances from external sources, that is, instances not created by the pool, using the {@link release(E)} method.
- * If the pool is full when you call {@link release(E)}, it will expand the underlying linked-list by adding a new node to accommodate the instance.</p>
+ * <p>You can also add new instances from external sources, that is, instances not created by the pool, using the {@link #release(E)} method.
+ * If the pool is full when you call {@link #release(E)}, it will expand the underlying linked-list by adding a new node to accommodate the instance.</p>
  *
  * @param <E> the object being served by this object pool
  */
