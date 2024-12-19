@@ -1,5 +1,5 @@
 # CoralPool
-CoralPool is a _fast_, lightweight and garbage-free implementation of a Java _object pool_. It is designed to efficiently reuse mutable objects, minimizing the creation of _short-lived_ objects that would otherwise be discarded and processed by the garbage collector. It can gradually grow to accommodate more instances by allocating new objects internally and/or by accepting new objects through the `release(E)` method.
+CoralPool is a _fast_, lightweight and garbage-free implementation of a Java _object pool_. It is designed to efficiently reuse mutable objects, minimizing the creation of _short-lived_ objects that would otherwise be discarded and processed by the garbage collector. It can grow to accommodate more instances by allocating new objects internally through the `get()` method and/or by accepting new objects through the `release(E)` method.
 
 ## ObjectPool Interface
 ```java
@@ -38,14 +38,14 @@ pool.release(sb);
 
 ## LinkedObjectPool
 
-An `ObjectPool` backed by an internal linked-list. The pool can grow indefinitely by adding new nodes to the list. You can call `get()` forever and the pool will keep returning newly allocated instances through its internal `Builder<E>`. Basically the pool can never return a `null` object through its `get()` method.
+An `ObjectPool` backed by an internal linked-list. The pool can grow gradually by adding new nodes to the list. You can call `get()` forever and the pool will keep returning newly allocated instances through its internal `Builder<E>`. Basically the pool can never return a `null` object through its `get()` method.
 
 You can also add new instances from external sources, that is, instances not created by the pool, using the `release(E)` method.
 If the pool is full when you call `release(E)`, it will expand the underlying linked-list by adding a new node to accommodate the instance.
 
 ## ArrayObjectPool
 
-An `ObjectPool` backed by an internal array. The pool can grow indefinitely, allowing you to continuously call `get()` to receive new instances. When the pool runs out of instances, the internal array grows to accommodate more. Essentially, the pool will never return a `null` object through its `get()` method.
+An `ObjectPool` backed by an internal array. The pool doubles its size with each expansion, allowing you to continuously call `get()` to receive new instances. Essentially, the pool will never return a `null` object through its `get()` method.
 
 You can also add instances from external sources, that is, instances not created by the pool, using the `release(E)` method. If the pool is full when you call `release(E)`, it will grow to accommodate the new instance.
 
