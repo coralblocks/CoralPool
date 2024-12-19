@@ -45,17 +45,11 @@ You can also add new instances from external sources, that is, instances not cre
 
 ## ArrayObjectPool
 
-An `ObjectPool` backed by an internal array. The pool can grow indefinitely by serving new instances to the outside world, in other words,
-you can keep calling `get()` forever to receive new instances. When the pool gets empty the internal array will grow to accommodate more instances.
-Basically the pool can never return a `null` object through its `get()` method.
+An `ObjectPool` backed by an internal array. The pool can grow indefinitely, allowing you to continuously call `get()` to receive new instances. When the pool runs out of instances, the internal array grows to accommodate more. Essentially, the pool will never return a `null` object through its `get()` method.
 
-Note that releasing an instance back to a full pool, _for the case that an extra instance was created externally_ and it is now being pushed into the pool, causes the
-instance to be ignored and stored as a [SoftReference](https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/ref/SoftReference.html). This delays the instance from being garbage collected.
-Ideally you should never have to create an extra instance externally, in other words, if you need a new instance you should ask the pool for one instead of creating one yourself and later attempting to release it to the pool.
- 
-Also note that when the pool grows, a new larger internal array is allocated [without the need to perform any copying](src/main/java/com/coralblocks/coralpool/ArrayObjectPool.java#L125). Instead of discarding the previous array, it is also stored as a `SoftReference` to
-delay it from being garbage collected. A `SoftReference` postpones the GC activity until the JVM is running out of memory, which should never happen.
-If you want you can release the soft references to the GC through the public method `releaseSoftReferences()` of `ArrayObjectPool`.
+You can also add instances from external sources, that is, instances not created by the pool, using the `release(E)` method. If the pool is full when you call `release(E)`, it will grow to accommodate the new instance.
+
+When the pool grows, a larger internal array is allocated. Instead of discarding the previous array, it is stored as a [SoftReference](https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/ref/SoftReference.html) to delay garbage collection. A `SoftReference` allows the JVM to postpone garbage collection until memory is critically low, which should rarely occur. If needed, you can manually release these soft references by calling the `releaseSoftReferences()` method from `ArrayObjectPool`.
 
 ## Benchmarks
 
