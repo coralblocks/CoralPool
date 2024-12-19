@@ -45,7 +45,7 @@ If the pool is full when you call `release(E)`, it will expand the underlying li
 
 ## ArrayObjectPool
 
-An `ObjectPool` backed by an internal array. The pool grows by doubling its size with each expansion, allowing you to continuously call `get()` to receive new instances. When the pool runs out of instances, the internal array grows to accommodate more. Essentially, the pool will never return a `null` object through its `get()` method.
+An `ObjectPool` backed by an internal array. The pool grows by doubling its size with each expansion, allowing you to continuously call `get()` to receive new instances. When the pool runs out of instances, the internal array is re-allocated to accommodate more. Essentially, the pool will never return a `null` object through its `get()` method.
 
 You can also add instances from external sources, that is, instances not created by the pool, using the `release(E)` method. If the pool is full when you call `release(E)`, it will grow to accommodate the new instance.
 
