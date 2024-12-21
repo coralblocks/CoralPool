@@ -38,7 +38,7 @@ import com.coralblocks.coralpool.util.Builder;
  */
 public class ArrayObjectPool<E> implements ObjectPool<E> {
 	
-	public static float DEFAULT_GROWTH_FACTOR = 2f;
+	public static float DEFAULT_GROWTH_FACTOR = 1.75f;
 	public static int DEFAULT_SOFT_REFERENCE_LIST_SIZE = 32;
 	
 	private E[] array;

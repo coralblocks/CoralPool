@@ -56,7 +56,7 @@ public class ArrayObjectPoolReleaseTest {
     @Test
     public void testReleaseWithGrow() {
         // Small pool: capacity 2, preload 2, so it's initially full at [0,1]
-        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(2, 2, new IntegerBuilder());
+        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(2, 2, new IntegerBuilder(), 2.0f);
 
         // Get both objects to move pointer to 2:
         Integer o1 = pool.get(); // pointer=1
@@ -88,7 +88,7 @@ public class ArrayObjectPoolReleaseTest {
     @Test
     public void testReleaseWithGetAfterGrow() {
         // Start small: capacity 2, preload 2
-        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(2, 2, new IntegerBuilder());
+        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(2, 2, new IntegerBuilder(), 2.0f);
 
         // Drain both objects:
         Integer a = pool.get(); // pointer=1
@@ -130,7 +130,7 @@ public class ArrayObjectPoolReleaseTest {
     @Test
     public void testMultipleReleaseGrowScenarios() {
         // Start with a slightly bigger pool: capacity 4, preload 4
-        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(4, 4, new IntegerBuilder());
+        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(4, 4, new IntegerBuilder(), 2.0f);
 
         // Drain all 4 preloaded objects:
         Integer o1 = pool.get(); // pointer=1

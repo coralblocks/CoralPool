@@ -272,7 +272,7 @@ public class ObjectPoolTest {
     public void testArrayObjectPoolGrowArrayLength() {
     	
         // Create an array pool with a small initial capacity (4) and preload all of them
-        ArrayObjectPool<StringBuilder> pool = new ArrayObjectPool<StringBuilder>(4, 4, Builder.createBuilder(StringBuilder.class));
+        ArrayObjectPool<StringBuilder> pool = new ArrayObjectPool<StringBuilder>(4, 4, Builder.createBuilder(StringBuilder.class), 2.0f);
         
         // Initially array length should be 4
         assertEquals(4, pool.getArrayLength());

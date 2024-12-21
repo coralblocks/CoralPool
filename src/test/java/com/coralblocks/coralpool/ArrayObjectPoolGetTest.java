@@ -36,7 +36,7 @@ public class ArrayObjectPoolGetTest {
 	@Test
     public void testGetTriggersGrowthWhenEmpty() {
         // Start small: capacity=2, preload=2
-        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(2, 2, new IntegerBuilder());
+        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(2, 2, new IntegerBuilder(), 2.0f);
 
         // Initially: pointer=0, but we have 2 preloaded objects at [0,1].
         // get two objects:
@@ -59,7 +59,7 @@ public class ArrayObjectPoolGetTest {
     @Test
     public void testMultipleGrowthSteps() {
         // Start with capacity=2 and preload=2 again
-        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(2, 2, new IntegerBuilder());
+        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(2, 2, new IntegerBuilder(), 2.0f);
 
         // Drain the 2 preloaded objects
         pool.get(); // pointer=1
@@ -97,7 +97,7 @@ public class ArrayObjectPoolGetTest {
     @SuppressWarnings("unused")
 	@Test
     public void testGetNewInstancesAfterGrowth() {
-        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(3, 3, new IntegerBuilder());
+        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(3, 3, new IntegerBuilder(), 2.0f);
 
         // Initially: capacity=3, preload=3 means indices [0,1,2] have objects 0,1,2
         Integer obj0 = pool.get(); // pointer=1
@@ -132,7 +132,7 @@ public class ArrayObjectPoolGetTest {
 	@Test
     public void testGetAfterSomeReleasesDoesNotAffectGrowthLogic() {
         // capacity=2, preload=2
-        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(2, 2, new IntegerBuilder());
+        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(2, 2, new IntegerBuilder(), 2.0f);
 
         Integer a = pool.get(); // pointer=1
         Integer b = pool.get(); // pointer=2
@@ -157,7 +157,7 @@ public class ArrayObjectPoolGetTest {
 	@Test
     public void testNoSideEffectsAfterGrowth() {
         // Start with capacity=2, preload=2
-        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(2, 2, new IntegerBuilder());
+        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(2, 2, new IntegerBuilder(), 2.0f);
 
         // Drain it:
         pool.get(); // pointer=1
