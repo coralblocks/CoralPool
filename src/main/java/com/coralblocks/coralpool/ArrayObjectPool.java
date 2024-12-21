@@ -43,7 +43,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	private E[] array;
 	private int pointer = 0;
 	private final Builder<E> builder;
-	private final float growFactor;
+	private final float growthFactor;
 	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>(16);
 	
 	/**
@@ -107,7 +107,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	@SuppressWarnings("unchecked")
 	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder, float growthFactor) {
 		check(initialCapacity, preloadCount, growthFactor);
-		this.growFactor = growthFactor;
+		this.growthFactor = growthFactor;
 		this.array = (E[]) new Object[initialCapacity];
 		for(int i = 0; i < preloadCount; i++) {
 			this.array[i] = builder.newInstance();
@@ -115,12 +115,12 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		this.builder = builder;
 	}
 	
-	private void check(int initialCapacity, int preloadCount, float growFactor) {
+	private void check(int initialCapacity, int preloadCount, float growthFactor) {
 		if (preloadCount > initialCapacity) {
 			throw new IllegalArgumentException("preloadCount (" + preloadCount + ") cannot be bigger than initialCapacity (" + initialCapacity + ")");
 		}
-		if (growFactor <= 0) {
-			throw new IllegalArgumentException("growFactor (" + growFactor + ") must be bigger than zero");
+		if (growthFactor <= 0) {
+			throw new IllegalArgumentException("growthFactor (" + growthFactor + ") must be bigger than zero");
 		}
 	}
 	
@@ -141,7 +141,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	
 	private final int grow(boolean copyAndShift) {
 
-		int newLength = (int) (growFactor * array.length); // casting faster than rounding
+		int newLength = (int) (growthFactor * array.length); // casting faster than rounding
 		if (newLength == array.length) newLength++;
 
 		@SuppressWarnings("unchecked")
