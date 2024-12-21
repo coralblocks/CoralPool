@@ -98,11 +98,6 @@ public class MultiArrayObjectPoolTest {
         Object o3 = pool.get();
         Assert.assertNotNull(o3);
 
-        MultiArrayObjectPool.ArrayHolder<Object> current = pool.getArrays();
-        // After growth, arrays should now reference the newly created ArrayHolder to the right
-        // since we were forced to grow that way.
-        Assert.assertEquals("ArrayHolder index should now be 1 (grown to the right)", 1, current.index);
-
         Object o4 = pool.get();
         Assert.assertNotNull("Should be able to get another object from the new array", o4);
     }
@@ -117,11 +112,6 @@ public class MultiArrayObjectPoolTest {
         // If we release an object now, pointer will decrement and we’ll need space to the left.
         Object testObj = "TestObj";
         pool.release(testObj);
-
-        // After release beyond the left boundary, grow(false) should occur.
-        // This means we have grown a new ArrayHolder to the left, which should have index = -1
-        MultiArrayObjectPool.ArrayHolder<Object> current = pool.getArrays();
-        Assert.assertEquals("ArrayHolder index should now be -1 (grown to the left)", -1, current.index);
 
         // Now get the object back
         Object retrieved = pool.get();

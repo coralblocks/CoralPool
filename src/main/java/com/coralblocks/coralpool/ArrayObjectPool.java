@@ -127,7 +127,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		int offset = this.array.length;
 
 		if (copyAndShift) {
-			offset = newArray.length - this.array.length; // place at the very end
+			offset = newArray.length - this.array.length; // shift to the the very end
 			System.arraycopy(this.array, 0, newArray, offset, this.array.length);
 			// NULLIFYING LOGIC HERE: (newArray will contain nulls at the front)
 			System.arraycopy(newArray, 0, this.array, 0, this.array.length); // null out previous array

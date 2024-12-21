@@ -21,23 +21,17 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	
 	static class ArrayHolder<E> {
 		
-		final int index;
 		ArrayHolder<E> prev;
 		final E[] array;
 		ArrayHolder<E> next;
 		
-		ArrayHolder(final E[] array, int index) {
+		ArrayHolder(final E[] array) {
 			this.array = array;
-			this.index = index;
-		}
-		
-		final int getIndex(int pointer, int arrayLength) {
-			return Math.abs(pointer % arrayLength);
 		}
 	}
 	
 	private ArrayHolder<E> arrays;
-	private int pointer = 0;
+	private int arrayPointer = 0;
 	private final Builder<E> builder;
 	private final int preloadCount;
 	private final int arrayLength;
@@ -90,7 +84,7 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		this.preloadCount = preloadCount;
 		this.builder = builder;
 		E[] array = allocateArray(arrayLength, preloadCount);
-		this.arrays = new ArrayHolder<E>(array, 0);
+		this.arrays = new ArrayHolder<E>(array);
 	}
 	
 	private final E[] allocateArray(int arrayLength, int preloadCount) {
@@ -122,12 +116,12 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		
 		if (trueForRightFalseForLeft) {
 			E[] newArray = allocateArray(arrayLength, preloadCount);
-			newArrayHolder = new ArrayHolder<E>(newArray, this.arrays.index + 1);
+			newArrayHolder = new ArrayHolder<E>(newArray);
 			newArrayHolder.prev = this.arrays;
 			this.arrays.next = newArrayHolder;
 		} else {
 			E[] newArray = allocateArray(arrayLength); // all nulls
-			newArrayHolder = new ArrayHolder<E>(newArray, this.arrays.index - 1);
+			newArrayHolder = new ArrayHolder<E>(newArray);
 			newArrayHolder.next = this.arrays;
 			this.arrays.prev = newArrayHolder;
 		}
@@ -138,11 +132,7 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	@Override
 	public final E get() {
 		
-		// if we move to next array, zero is the first index of course
-		int arrayIndex = 0;
-		
-		// first pointer from next array => (arrays.index + 1) * arrayLength;
-		if (pointer == (arrays.index + 1) * arrayLength) {
+		if (arrayPointer == arrayLength) {
 			
 			if (arrays.next != null) {
 				arrays = arrays.next;
@@ -150,19 +140,17 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 				arrays = grow(true);
 			}
 			
-			// arrayIndex = 0; // REDUNDANT
-			
-		} else {
-			
-			arrayIndex = arrays.getIndex(pointer++, arrayLength);
+			arrayPointer = 0;
 		}
-		
-		E toReturn = this.arrays.array[arrayIndex];
+			
+		E toReturn = this.arrays.array[arrayPointer];
 		if (toReturn == null) {
 			toReturn = builder.newInstance();
 		} else {
-			this.arrays.array[arrayIndex] = null;
+			this.arrays.array[arrayPointer] = null;
 		}
+		
+		arrayPointer++;
 
 		return toReturn;
 	}
@@ -170,11 +158,7 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	@Override
 	public final void release(E object) {
 		
-		// if we move to previous array, arrayLength - 1 is the first index of course
-		int arrayIndex = arrayLength - 1;
-		
-		// first pointer from current array = arrays.index * arrayLength;
-		if (pointer-- == arrays.index * arrayLength) {
+		if (arrayPointer == 0) {
 			
 			if (arrays.prev != null) {
 				arrays = arrays.prev;
@@ -182,13 +166,9 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 				arrays = grow(false);
 			}
 			
-			// arrayIndex = arrayLength - 1; // REDUNDANT
-			
-		} else {
+			arrayPointer = arrayLength;
+		} 
 		
-			arrayIndex = arrays.getIndex(pointer, arrayLength);
-		}
-		
-		this.arrays.array[arrayIndex] = object;
+		this.arrays.array[--arrayPointer] = object;
 	}
 }
