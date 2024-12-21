@@ -17,6 +17,7 @@ package com.coralblocks.coralpool;
 
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.coralblocks.coralpool.util.Builder;
@@ -37,9 +38,12 @@ import com.coralblocks.coralpool.util.Builder;
  */
 public class ArrayObjectPool<E> implements ObjectPool<E> {
 	
+	public static final float DEFAULT_GROWTH_FACTOR = 2f;
+	
 	private E[] array;
 	private int pointer = 0;
 	private final Builder<E> builder;
+	private final float growFactor;
 	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>(16);
 	
 	/**
@@ -53,6 +57,10 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		this(initialCapacity, Builder.createBuilder(klass));
 	}	
 	
+	public ArrayObjectPool(int initialCapacity, Class<E> klass, float growthFactor) {
+		this(initialCapacity, Builder.createBuilder(klass), growthFactor);
+	}
+	
 	/**
 	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
 	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
@@ -62,6 +70,10 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	 */
 	public ArrayObjectPool(int initialCapacity, Builder<E> builder) {
 		this(initialCapacity, initialCapacity, builder);
+	}
+	
+	public ArrayObjectPool(int initialCapacity, Builder<E> builder, float growthFactor) {
+		this(initialCapacity, initialCapacity, builder, growthFactor);
 	}
 	
 	/**
@@ -75,6 +87,14 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	public ArrayObjectPool(int initialCapacity, int preloadCount, Class<E> klass) {
 		this(initialCapacity, preloadCount, Builder.createBuilder(klass));
 	}
+	
+	public ArrayObjectPool(int initialCapacity, int preloadCount, Class<E> klass, float growthFactor) {
+		this(initialCapacity, preloadCount, Builder.createBuilder(klass), growthFactor);
+	}
+	
+	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
+		this(initialCapacity, preloadCount, builder, DEFAULT_GROWTH_FACTOR);
+	}
 
 	/**
 	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The pool will be populated with the given preload count,
@@ -85,8 +105,9 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	 * @param builder the builder of the pool
 	 */
 	@SuppressWarnings("unchecked")
-	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
-		check(initialCapacity, preloadCount);
+	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder, float growthFactor) {
+		check(initialCapacity, preloadCount, growthFactor);
+		this.growFactor = growthFactor;
 		this.array = (E[]) new Object[initialCapacity];
 		for(int i = 0; i < preloadCount; i++) {
 			this.array[i] = builder.newInstance();
@@ -94,9 +115,12 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		this.builder = builder;
 	}
 	
-	private void check(int initialCapacity, int preloadCount) {
+	private void check(int initialCapacity, int preloadCount, float growFactor) {
 		if (preloadCount > initialCapacity) {
 			throw new IllegalArgumentException("preloadCount (" + preloadCount + ") cannot be bigger than initialCapacity (" + initialCapacity + ")");
+		}
+		if (growFactor <= 0) {
+			throw new IllegalArgumentException("growFactor (" + growFactor + ") must be bigger than zero");
 		}
 	}
 	
@@ -117,9 +141,8 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	
 	private final int grow(boolean copyAndShift) {
 
-		// NOTE: don't change because of the nullifying logic below!
-		// It must be AT LEAST double size
-		int newLength = 2 * array.length;
+		int newLength = (int) (growFactor * array.length); // casting faster than rounding
+		if (newLength == array.length) newLength++;
 
 		@SuppressWarnings("unchecked")
 		E[] newArray = (E[]) new Object[newLength];
@@ -129,8 +152,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		if (copyAndShift) {
 			offset = newArray.length - this.array.length; // shift to the the very end
 			System.arraycopy(this.array, 0, newArray, offset, this.array.length);
-			// NULLIFYING LOGIC HERE: (newArray will contain nulls at the front)
-			System.arraycopy(newArray, 0, this.array, 0, this.array.length); // null out previous array
+			Arrays.fill(this.array, null);
 		} else {
 			// No need to perform any copying here as the previous array will have only nulls!
 		}
