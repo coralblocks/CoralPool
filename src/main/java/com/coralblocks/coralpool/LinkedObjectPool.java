@@ -104,7 +104,14 @@ public class LinkedObjectPool<E> implements ObjectPool<E> {
 	}
 
 	@Override
-	public void release(E e) {
-		linkedList.addLast(e);
+	public void release(E object) {
+		
+		ensureNotNull(object);
+		
+		linkedList.addLast(object);
+	}
+	
+	private final void ensureNotNull(E object) {
+		if (object == null) throw new IllegalArgumentException("Cannot release null!");
 	}
 }

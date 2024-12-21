@@ -39,7 +39,7 @@ public interface ObjectPool<E> {
 	public E get();
 
 	/**
-	 * Return an instance to the pool
+	 * Return an instance to the pool. Trying to release <code>null</code> will throw exception.
 	 * 
 	 * @param e the instance to be returned to the pool
 	 */

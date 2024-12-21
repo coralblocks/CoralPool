@@ -122,10 +122,17 @@ public class TieredObjectPool<E> implements ObjectPool<E> {
 	
 	@Override
 	public final void release(E object) {
+		
+		ensureNotNull(object);
+		
 		if (pointer == array.length) {
 			linkedList.addLast(object);
 		} else {
 			this.array[pointer++] = object;
 		}
+	}
+	
+	private final void ensureNotNull(E object) {
+		if (object == null) throw new IllegalArgumentException("Cannot release null!");
 	}
 }

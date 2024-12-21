@@ -158,6 +158,8 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	@Override
 	public final void release(E object) {
 		
+		ensureNotNull(object);
+		
 		if (pointer == 0) {
 			
 			if (arrayHolder.prev != null) {
@@ -170,5 +172,9 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		} 
 		
 		this.arrayHolder.array[--pointer] = object;
+	}
+	
+	private final void ensureNotNull(E object) {
+		if (object == null) throw new IllegalArgumentException("Cannot release null!");
 	}
 }
