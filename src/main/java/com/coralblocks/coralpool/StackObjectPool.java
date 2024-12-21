@@ -107,8 +107,8 @@ public class StackObjectPool<E> implements ObjectPool<E> {
 		if (preloadCount > initialCapacity) {
 			throw new IllegalArgumentException("preloadCount (" + preloadCount + ") cannot be bigger than initialCapacity (" + initialCapacity + ")");
 		}
-		if (growthFactor <= 0) {
-			throw new IllegalArgumentException("growthFactor (" + growthFactor + ") must be bigger than zero");
+		if (growthFactor <= 1) {
+			throw new IllegalArgumentException("growthFactor (" + growthFactor + ") must be bigger than one");
 		}
 	}
 	
