@@ -1,8 +1,11 @@
 package com.coralblocks.coralpool;
 
 import static org.junit.Assert.*;
-import org.junit.Test;
+
 import org.junit.Before;
+import org.junit.Test;
+
+import com.coralblocks.coralpool.util.Builder;
 
 public class StackObjectPoolTest {
     
@@ -20,11 +23,11 @@ public class StackObjectPoolTest {
     public void testInitialState() {
         assertEquals(INITIAL_CAPACITY, pool.getArrayLength());
         // Check preloaded elements
-        for (int i = 0; i < PRELOAD_COUNT; i++) {
+        for (int i = INITIAL_CAPACITY - PRELOAD_COUNT; i < INITIAL_CAPACITY; i++) {
             assertNotNull(pool.getArrayElement(i));
         }
         // Check remaining slots are null
-        for (int i = PRELOAD_COUNT; i < INITIAL_CAPACITY; i++) {
+        for (int i = 0; i < PRELOAD_COUNT; i++) {
             assertNull(pool.getArrayElement(i));
         }
     }
@@ -74,7 +77,7 @@ public class StackObjectPoolTest {
         }
         
         // Verify pool grew
-        int expectedNewLength = (int)(INITIAL_CAPACITY * GROWTH_FACTOR);
+        int expectedNewLength = (int)(INITIAL_CAPACITY * GROWTH_FACTOR * GROWTH_FACTOR);
         if (expectedNewLength == INITIAL_CAPACITY) expectedNewLength++;
         assertEquals(expectedNewLength, pool.getArrayLength());
         
@@ -119,12 +122,12 @@ public class StackObjectPoolTest {
         StackObjectPool<String> customPool = new StackObjectPool<>(initialCapacity, preloadCount, String.class);
         
         // Verify preloaded elements
-        for (int i = 0; i < preloadCount; i++) {
+        for (int i = initialCapacity - preloadCount; i < initialCapacity; i++) {
             assertNotNull(customPool.getArrayElement(i));
         }
         
         // Verify remaining slots are null
-        for (int i = preloadCount; i < initialCapacity; i++) {
+        for (int i = 0; i < preloadCount; i++) {
             assertNull(customPool.getArrayElement(i));
         }
         
@@ -150,7 +153,6 @@ public class StackObjectPoolTest {
         }
         
         int releaseCount = pool.releaseSoftReferences();
-        System.out.println(releaseCount);
         assertEquals(3, releaseCount);
         
         // Verify pool still functions correctly
@@ -170,7 +172,7 @@ public class StackObjectPoolTest {
         }
         
         // Fill beyond initial capacity
-        for (int i = 0; i < INITIAL_CAPACITY + 1; i++) {
+        for (int i = 0; i < PRELOAD_COUNT + 1; i++) {
             smallGrowthPool.release("Test" + i);
         }
         
@@ -209,12 +211,20 @@ public class StackObjectPoolTest {
         }
         
         // Fill beyond initial capacity
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
             fractionalGrowthPool.release("Test" + i);
         }
         
         // Verify growth rounds down (4 * 1.5 = 6)
         assertEquals(6, fractionalGrowthPool.getArrayLength());
+        
+        // Fill beyond initial capacity
+        for (int i = 0; i < 2; i++) {
+            fractionalGrowthPool.release("Test" + i);
+        }
+        
+        // Verify growth rounds down (4 * 1.5 = 6)
+        assertEquals(9, fractionalGrowthPool.getArrayLength());
     }
     
     @Test
@@ -256,11 +266,224 @@ public class StackObjectPoolTest {
         }
         
         // Fill beyond capacity
-        for (int i = 0; i < 101; i++) {
+        for (int i = 0; i < 51; i++) {
             minimalGrowthPool.release("Test" + i);
         }
         
         // Should grow by at least 1
         assertEquals(101, minimalGrowthPool.getArrayLength());
+    }
+    
+    // Test object for pooling
+    public static class TestObject {
+        int value;
+        
+        public TestObject() {
+            value = 0;
+        }
+
+        public void reset() {
+            value = 0;
+        }
+    }
+
+    // Builder for TestObject
+    Builder<TestObject> testObjectBuilder = new Builder<TestObject>() {
+        @Override
+        public TestObject newInstance() {
+            return new TestObject();
+        }
+    };
+    
+    Builder<TestObject> testObjectBuilderFromClass = Builder.createBuilder(TestObject.class);
+
+    @Test
+    public void testCreateBuilder() {
+        TestObject obj1 = testObjectBuilder.newInstance();
+        assertNotNull(obj1);
+        assertEquals(0, obj1.value);
+        
+        TestObject obj2 = testObjectBuilderFromClass.newInstance();
+        assertNotNull(obj2);
+        assertEquals(0, obj2.value);
+    }
+    
+    @Test
+    public void testConstructor_initialCapacityAndClass() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(5, TestObject.class);
+        assertEquals(5, pool.getArrayLength());
+        for (int i = 0; i < 5; i++) {
+            assertNotNull(pool.getArrayElement(i));
+        }
+    }
+    
+    @Test
+    public void testConstructor_initialCapacityAndClassAndGrowthFactor() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(5, TestObject.class, 1.5f);
+        assertEquals(5, pool.getArrayLength());
+        for (int i = 0; i < 5; i++) {
+            assertNotNull(pool.getArrayElement(i));
+        }
+    }
+
+    @Test
+    public void testConstructor_initialCapacityAndBuilder() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(5, testObjectBuilder);
+        assertEquals(5, pool.getArrayLength());
+        for (int i = 0; i < 5; i++) {
+            assertNotNull(pool.getArrayElement(i));
+        }
+    }
+    
+    @Test
+    public void testConstructor_initialCapacityAndBuilderAndGrowthFactor() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(5, testObjectBuilder, 1.5f);
+        assertEquals(5, pool.getArrayLength());
+        for (int i = 0; i < 5; i++) {
+            assertNotNull(pool.getArrayElement(i));
+        }
+    }
+
+    @Test
+    public void testConstructor_initialCapacityPreloadCountAndClass() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(10, 5, TestObject.class);
+        assertEquals(10, pool.getArrayLength());
+        for (int i = 0; i < 5; i++) {
+            assertNull(pool.getArrayElement(i));
+        }
+        for (int i = 5; i < 10; i++) {
+            assertNotNull(pool.getArrayElement(i));
+        }
+    }
+    
+    @Test
+    public void testConstructor_initialCapacityPreloadCountAndClassAndGrowthFactor() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(10, 5, TestObject.class, 1.5f);
+        assertEquals(10, pool.getArrayLength());
+        for (int i = 0; i < 5; i++) {
+            assertNull(pool.getArrayElement(i));
+        }
+        for (int i = 5; i < 10; i++) {
+            assertNotNull(pool.getArrayElement(i));
+        }
+    }
+
+    @Test
+    public void testConstructor_initialCapacityPreloadCountAndBuilder() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(10, 5, testObjectBuilder);
+        assertEquals(10, pool.getArrayLength());
+        for (int i = 0; i < 5; i++) {
+            assertNull(pool.getArrayElement(i));
+        }
+        for (int i = 5; i < 10; i++) {
+            assertNotNull(pool.getArrayElement(i));
+        }
+    }
+    
+    @Test
+    public void testConstructor_initialCapacityPreloadCountAndBuilderAndGrowthFactor() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(10, 5, testObjectBuilder, 1.5f);
+        assertEquals(10, pool.getArrayLength());
+        for (int i = 0; i < 5; i++) {
+            assertNull(pool.getArrayElement(i));
+        }
+        for (int i = 5; i < 10; i++) {
+            assertNotNull(pool.getArrayElement(i));
+        }
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_invalidPreloadCount() {
+        new StackObjectPool<>(5, 10, testObjectBuilder);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_invalidGrowthFactor() {
+        new StackObjectPool<>(5, testObjectBuilder, 0f);
+    }
+
+    @Test
+    public void testGetAndRelease2() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(2, testObjectBuilder);
+        TestObject obj1 = pool.get();
+        TestObject obj2 = pool.get();
+        assertNotNull(obj1);
+        assertNotNull(obj2);
+        assertNotSame(obj1, obj2);
+        
+        pool.release(obj1);
+        pool.release(obj2);
+        
+        TestObject obj3 = pool.get();
+        TestObject obj4 = pool.get();
+        
+        assertSame(obj2, obj3);
+        assertSame(obj1, obj4);
+    }
+
+    @Test
+    public void testGet_emptyPool() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(0, testObjectBuilder);
+        TestObject obj = pool.get();
+        assertNotNull(obj);
+    }
+
+    @Test
+    public void testReleaseAndGrow() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(2, testObjectBuilder, 2f);
+        TestObject obj1 = pool.get();
+        TestObject obj2 = pool.get();
+        pool.release(obj1);
+        pool.release(obj2);
+        
+        assertEquals(2, pool.getArrayLength());
+        pool.release(new TestObject());
+        assertEquals(4, pool.getArrayLength());
+    }
+
+    @Test
+    public void testReleaseAndGrow_minimalGrowth() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(2, testObjectBuilder, 1.000001f);
+        TestObject obj1 = pool.get();
+        TestObject obj2 = pool.get();
+        pool.release(obj1);
+        pool.release(obj2);
+        
+        assertEquals(2, pool.getArrayLength());
+        pool.release(new TestObject());
+        assertEquals(3, pool.getArrayLength());
+    }
+    
+    @Test
+    public void testGet_nullElementInPool() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(10, 0, testObjectBuilder);
+        TestObject obj = pool.get();
+        assertNotNull(obj);
+    }
+    
+    @Test
+    public void testReleaseSoftReferences2() {
+        StackObjectPool<TestObject> pool = new StackObjectPool<>(1, testObjectBuilder, 2f);
+        TestObject obj1 = pool.get();
+        pool.release(obj1);
+        
+        pool.release(new TestObject());
+        pool.release(new TestObject());
+        pool.release(new TestObject());
+        
+        assertEquals(4, pool.getArrayLength());
+        assertEquals(2, pool.releaseSoftReferences());
+        assertEquals(0, pool.releaseSoftReferences());
+    }
+    
+    @Test
+    public void testMassiveGrowth() {
+    	StackObjectPool<TestObject> pool = new StackObjectPool<>(2, testObjectBuilder, 2f);
+    	
+    	for(int i = 0; i < 100; i++) {
+    		pool.release(new TestObject());
+    	}
+    	
+    	assertTrue(pool.getArrayLength() > 100);
     }
 }

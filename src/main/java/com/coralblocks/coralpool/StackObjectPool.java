@@ -96,11 +96,11 @@ public class StackObjectPool<E> implements ObjectPool<E> {
 		check(initialCapacity, preloadCount, growthFactor);
 		this.growthFactor = growthFactor;
 		this.array = (E[]) new Object[initialCapacity];
-		for(int i = 0; i < preloadCount; i++) {
+		for(int i = initialCapacity - preloadCount; i < initialCapacity; i++) {
 			this.array[i] = builder.newInstance();
 		}
 		this.builder = builder;
-		this.pointer = preloadCount; // important
+		this.pointer = initialCapacity; // important
 	}
 	
 	private void check(int initialCapacity, int preloadCount, float growthFactor) {
@@ -135,9 +135,11 @@ public class StackObjectPool<E> implements ObjectPool<E> {
     private void grow() {
     	
 		int newLength = (int) (growthFactor * array.length); // casting faster than rounding
+		
 		if (newLength == array.length) newLength++;
-    	
+		
     	E[] newArray = (E[]) new Object[newLength];
+    	
         System.arraycopy(array, 0, newArray, 0, array.length);
         Arrays.fill(array, null);
         
@@ -154,7 +156,12 @@ public class StackObjectPool<E> implements ObjectPool<E> {
 		}
 		
 		E toReturn = this.array[--pointer];
-		this.array[pointer] = null;
+		if (toReturn != null) {
+			this.array[pointer] = null;
+		} else {
+			toReturn = builder.newInstance();
+		}
+		
 		return toReturn;
 	}
 	
