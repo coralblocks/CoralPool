@@ -30,8 +30,8 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		}
 	}
 	
-	private ArrayHolder<E> arrays;
-	private int arrayPointer = 0;
+	private ArrayHolder<E> arrayHolder;
+	private int pointer = 0;
 	private final Builder<E> builder;
 	private final int preloadCount;
 	private final int arrayLength;
@@ -84,7 +84,7 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		this.preloadCount = preloadCount;
 		this.builder = builder;
 		E[] array = allocateArray(arrayLength, preloadCount);
-		this.arrays = new ArrayHolder<E>(array);
+		this.arrayHolder = new ArrayHolder<E>(array);
 	}
 	
 	private final E[] allocateArray(int arrayLength, int preloadCount) {
@@ -106,8 +106,8 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		}
 	}
 	
-	ArrayHolder<E> getArrays() {
-		return this.arrays;
+	ArrayHolder<E> getArrayHolder() {
+		return this.arrayHolder;
 	}
 	
 	private final ArrayHolder<E> grow(boolean trueForRightFalseForLeft) {
@@ -117,13 +117,13 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		if (trueForRightFalseForLeft) {
 			E[] newArray = allocateArray(arrayLength, preloadCount);
 			newArrayHolder = new ArrayHolder<E>(newArray);
-			newArrayHolder.prev = this.arrays;
-			this.arrays.next = newArrayHolder;
+			newArrayHolder.prev = this.arrayHolder;
+			this.arrayHolder.next = newArrayHolder;
 		} else {
 			E[] newArray = allocateArray(arrayLength); // all nulls
 			newArrayHolder = new ArrayHolder<E>(newArray);
-			newArrayHolder.next = this.arrays;
-			this.arrays.prev = newArrayHolder;
+			newArrayHolder.next = this.arrayHolder;
+			this.arrayHolder.prev = newArrayHolder;
 		}
 		
 		return newArrayHolder;
@@ -132,25 +132,25 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	@Override
 	public final E get() {
 		
-		if (arrayPointer == arrayLength) {
+		if (pointer == arrayLength) {
 			
-			if (arrays.next != null) {
-				arrays = arrays.next;
+			if (arrayHolder.next != null) {
+				arrayHolder = arrayHolder.next;
 			} else {
-				arrays = grow(true);
+				arrayHolder = grow(true);
 			}
 			
-			arrayPointer = 0;
+			pointer = 0;
 		}
 			
-		E toReturn = this.arrays.array[arrayPointer];
+		E toReturn = this.arrayHolder.array[pointer];
 		if (toReturn == null) {
 			toReturn = builder.newInstance();
 		} else {
-			this.arrays.array[arrayPointer] = null;
+			this.arrayHolder.array[pointer] = null;
 		}
 		
-		arrayPointer++;
+		pointer++;
 
 		return toReturn;
 	}
@@ -158,17 +158,17 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	@Override
 	public final void release(E object) {
 		
-		if (arrayPointer == 0) {
+		if (pointer == 0) {
 			
-			if (arrays.prev != null) {
-				arrays = arrays.prev;
+			if (arrayHolder.prev != null) {
+				arrayHolder = arrayHolder.prev;
 			} else {
-				arrays = grow(false);
+				arrayHolder = grow(false);
 			}
 			
-			arrayPointer = arrayLength;
+			pointer = arrayLength;
 		} 
 		
-		this.arrays.array[--arrayPointer] = object;
+		this.arrayHolder.array[--pointer] = object;
 	}
 }

@@ -22,21 +22,7 @@ import java.util.List;
 
 import com.coralblocks.coralpool.util.Builder;
 
-/**
- *  <p>An {@link ObjectPool} backed by an internal array. The pool doubles its size with each expansion, allowing you to continuously call {@link #get()} to 
- *  receive new instances. Essentially, the pool will never return a <code>null</code> object through its {@link #get()} method.</p>
- *  
- *  <p>You can also add instances from external sources, that is, instances not created by the pool, using the {@link #release(E)} method. If the pool is 
- *  full when you call {@link #release(E)}, it will grow to accommodate the new instance.</p>
- *  
- *  <p>When the pool grows, a larger internal array is allocated. Instead of discarding the previous array, it is stored 
- *  as a {@link java.lang.ref.SoftReference} to delay garbage collection. A <code>SoftReference</code> allows the JVM to postpone garbage collection until 
- *  memory is critically low, which should rarely occur. If needed, you can manually release these soft references by 
- *  calling the {@link #releaseSoftReferences()} method from the pool.</p>
- *
- * @param <E> the object being served by this object pool
- */
-public class ArrayObjectPool<E> implements ObjectPool<E> {
+public class StackObjectPool<E> implements ObjectPool<E> {
 	
 	public static float DEFAULT_GROWTH_FACTOR = 2f;
 	public static int DEFAULT_SOFT_REFERENCE_LIST_SIZE = 32;
@@ -48,57 +34,57 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>(DEFAULT_SOFT_REFERENCE_LIST_SIZE);
 	
 	/**
-	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
+	 * Creates a new <code>StackObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
 	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
 	 * 
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param klass the class used as the builder of the pool
 	 */
-	public ArrayObjectPool(int initialCapacity, Class<E> klass) {
+	public StackObjectPool(int initialCapacity, Class<E> klass) {
 		this(initialCapacity, Builder.createBuilder(klass));
 	}	
 	
-	public ArrayObjectPool(int initialCapacity, Class<E> klass, float growthFactor) {
+	public StackObjectPool(int initialCapacity, Class<E> klass, float growthFactor) {
 		this(initialCapacity, Builder.createBuilder(klass), growthFactor);
 	}
 	
 	/**
-	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
+	 * Creates a new <code>StackObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
 	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
 	 * 
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param builder the builder of the pool
 	 */
-	public ArrayObjectPool(int initialCapacity, Builder<E> builder) {
+	public StackObjectPool(int initialCapacity, Builder<E> builder) {
 		this(initialCapacity, initialCapacity, builder);
 	}
 	
-	public ArrayObjectPool(int initialCapacity, Builder<E> builder, float growthFactor) {
+	public StackObjectPool(int initialCapacity, Builder<E> builder, float growthFactor) {
 		this(initialCapacity, initialCapacity, builder, growthFactor);
 	}
 	
 	/**
-	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The pool will be populated with the given preload count,
+	 * Creates a new <code>StackObjectPool</code> with the given initial capacity. The pool will be populated with the given preload count,
 	 * in other words, the pool will preallocate <code>preloadCount</code> instances at startup.
 	 *   
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param preloadCount the number of instances to preallocate at startup
 	 * @param klass the class used as the builder of the pool
 	 */
-	public ArrayObjectPool(int initialCapacity, int preloadCount, Class<E> klass) {
+	public StackObjectPool(int initialCapacity, int preloadCount, Class<E> klass) {
 		this(initialCapacity, preloadCount, Builder.createBuilder(klass));
 	}
 	
-	public ArrayObjectPool(int initialCapacity, int preloadCount, Class<E> klass, float growthFactor) {
+	public StackObjectPool(int initialCapacity, int preloadCount, Class<E> klass, float growthFactor) {
 		this(initialCapacity, preloadCount, Builder.createBuilder(klass), growthFactor);
 	}
 	
-	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
+	public StackObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
 		this(initialCapacity, preloadCount, builder, DEFAULT_GROWTH_FACTOR);
 	}
 
 	/**
-	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The pool will be populated with the given preload count,
+	 * Creates a new <code>StackObjectPool</code> with the given initial capacity. The pool will be populated with the given preload count,
 	 * in other words, the pool will preallocate <code>preloadCount</code> instances at startup.
 	 *   
 	 * @param initialCapacity the initial capacity of the pool
@@ -106,7 +92,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	 * @param builder the builder of the pool
 	 */
 	@SuppressWarnings("unchecked")
-	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder, float growthFactor) {
+	public StackObjectPool(int initialCapacity, int preloadCount, Builder<E> builder, float growthFactor) {
 		check(initialCapacity, preloadCount, growthFactor);
 		this.growthFactor = growthFactor;
 		this.array = (E[]) new Object[initialCapacity];
@@ -114,6 +100,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 			this.array[i] = builder.newInstance();
 		}
 		this.builder = builder;
+		this.pointer = preloadCount; // important
 	}
 	
 	private void check(int initialCapacity, int preloadCount, float growthFactor) {
@@ -144,53 +131,38 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		return toReturn;
 	}
 	
-	private final int grow(boolean copyAndShift) {
-
+    @SuppressWarnings("unchecked")
+    private void grow() {
+    	
 		int newLength = (int) (growthFactor * array.length); // casting faster than rounding
 		if (newLength == array.length) newLength++;
-
-		@SuppressWarnings("unchecked")
-		E[] newArray = (E[]) new Object[newLength];
-		
-		int offset = this.array.length;
-
-		if (copyAndShift) {
-			offset = newArray.length - this.array.length; // shift to the the very end
-			System.arraycopy(this.array, 0, newArray, offset, this.array.length);
-			Arrays.fill(this.array, null);
-		} else {
-			// No need to perform any copying here as the previous array will have only nulls!
-		}
-
-		oldArrays.add(new SoftReference<E[]>(this.array)); // delay gc
-
-		this.array = newArray;
-		
-		return offset;
-	}
+    	
+    	E[] newArray = (E[]) new Object[newLength];
+        System.arraycopy(array, 0, newArray, 0, array.length);
+        Arrays.fill(array, null);
+        
+        oldArrays.add(new SoftReference<E[]>(this.array));
+        
+        this.array = newArray;
+    }
 	
 	@Override
 	public final E get() {
 		
-		if (pointer == array.length) {
-			/*pointer = */grow(false); // pointer returned will be array length anyway!
+		if (pointer == 0) {
+			return builder.newInstance();
 		}
 		
-		E toReturn = this.array[pointer];
-		if (toReturn == null) {
-			toReturn = builder.newInstance();
-		} else {
-			this.array[pointer] = null;
-		}
-		pointer++;
+		E toReturn = this.array[--pointer];
+		this.array[pointer] = null;
 		return toReturn;
 	}
 	
 	@Override
 	public final void release(E object) {
-		if (pointer == 0) {
-			pointer = grow(true);
+		if (pointer == array.length) {
+			grow();
 		}
-		this.array[--pointer] = object;
+		this.array[pointer++] = object;
 	}
 }
