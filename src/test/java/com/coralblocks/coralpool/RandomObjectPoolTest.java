@@ -24,7 +24,7 @@ import org.junit.Test;
 
 public class RandomObjectPoolTest {
 	
-	private static enum Type { MULTI_ARRAY, ARRAY, LINKED, STACK };
+	private static enum Type { MULTI_ARRAY, ARRAY, LINKED, STACK, TIERED };
 
     /**
      * Implement or provide this method. It must return a fresh object pool each time.
@@ -38,6 +38,8 @@ public class RandomObjectPoolTest {
         	return new LinkedObjectPool<Object>(4, 2, Object.class);
         } else if (type == Type.STACK) {
         	return new StackObjectPool<Object>(4, 2, Object.class);
+        } else if (type == Type.TIERED) {
+        	return new TieredObjectPool<Object>(4, 2, Object.class);
         } else {
         	throw new IllegalStateException();
         }
