@@ -34,21 +34,26 @@ public class ObjectPoolNoGrowthBench {
 	public static void main(String[] args) {
 		
 		final Type type = Type.valueOf(args[0].toUpperCase());
-		final int initialCapacity = args.length > 1 ? Integer.parseInt(args[1]) : 100;
+		final int initialCapacity = args.length > 1 ? Integer.parseInt(args[1]) : 2_000;
 		final int preloadCount = args.length > 2 ? Integer.parseInt(args[2]) : initialCapacity;
+		final int passes = args.length > 3 ? Integer.parseInt(args[3]) : 1_000;
 		
 		final Object object = new Object();
 		
 		System.out.println();
 
-		System.out.println("type=" + type + " initialCapacity=" + initialCapacity + " preloadCount=" + preloadCount + "\n");
+		System.out.println("type=" + type + 
+		           " initialCapacity=" + initialCapacity + 
+		           " preloadCount=" + preloadCount +
+		           " passes=" + passes +
+		           "\n");
 		
-		for(int y = 0; y < 2; y++) { // two passes (the first is to warmup)
+		long totalTime = 0;
+		
+		for(int y = 0; y <= passes; y++) { // first pass (0) is warmup
 			
 			ObjectPool<Object> pool = createObjectPool(type ,initialCapacity, preloadCount, object);
 		
-			int callCount = 0;
-			
 			long start = System.nanoTime();
 			
 			Object obj = null;
@@ -60,14 +65,17 @@ public class ObjectPoolNoGrowthBench {
 				for(int x = 0; x < i; x++) {
 					pool.release(obj);
 				}
-				callCount += 2 * i;
 			}
 			
 			long time = System.nanoTime() - start;
 			
-			System.out.println(FORMATTER.format(time) + " nanoseconds for " + callCount + " calls");
+			if (y > 0) totalTime += time;
+			
+			System.out.print("\rPass: ");
+			System.out.print(y);
 		}
 		
+		System.out.println("\n\n" + FORMATTER.format(totalTime / passes) + " nanoseconds (passes=" + passes + ")");
 		System.out.println();
 	}
 	
