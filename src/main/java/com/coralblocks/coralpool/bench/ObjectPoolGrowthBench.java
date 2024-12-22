@@ -15,9 +15,8 @@
  */
 package com.coralblocks.coralpool.bench;
 
-import java.util.Random;
+import java.text.DecimalFormat;
 
-import com.coralblocks.coralbench.Bench;
 import com.coralblocks.coralpool.ArrayObjectPool;
 import com.coralblocks.coralpool.LinkedObjectPool;
 import com.coralblocks.coralpool.MultiArrayObjectPool;
@@ -26,80 +25,50 @@ import com.coralblocks.coralpool.StackObjectPool;
 import com.coralblocks.coralpool.TieredObjectPool;
 import com.coralblocks.coralpool.util.Builder;
 
-public class ObjectPoolGrowthBench1 {
+public class ObjectPoolGrowthBench {
 
 	private static enum Type { LINKED, ARRAY, MULTI, STACK, TIERED }
+	
+	private static final DecimalFormat FORMATTER = new DecimalFormat("#,###");
 	
 	public static void main(String[] args) {
 		
 		final Type type = Type.valueOf(args[0].toUpperCase());
-		final int warmup = args.length > 1 ? Integer.parseInt(args[1]) : 1_000_000;
-		final int measurements = args.length > 2 ? Integer.parseInt(args[2]) : 5_000_000;
-		final int totalIterations = warmup + measurements;
-		final int initialCapacity = args.length > 3 ? Integer.parseInt(args[3]) : 100;
-		final int preloadCount = args.length > 4 ? Integer.parseInt(args[4]) : initialCapacity;
-		final int randomSeed = args.length > 5 ? Integer.parseInt(args[5]) : 44444;
-		
-		Bench benchGet = new Bench(warmup);
-		Bench benchRel = new Bench(warmup);
+		final int initialCapacity = args.length > 1 ? Integer.parseInt(args[1]) : 100;
+		final int preloadCount = args.length > 2 ? Integer.parseInt(args[2]) : initialCapacity;
 		
 		final Object object = new Object();
 		
 		System.out.println();
-		
-		Random rand = new Random(randomSeed);
-	
-		ObjectPool<Object> pool = createObjectPool(type, initialCapacity, preloadCount, object);
-		
-		System.out.println("type=" + pool.getClass().getSimpleName() + 
-						   " warmup=" + warmup + " measurements=" + measurements + "\n");
-		
-		int remaining = totalIterations;
-		
-		benchGet.reset(true);
-		benchRel.reset(true);
-		
-		while(remaining != 0) {
-			
-			int x = rand.nextInt(2) + 1;
-			x = Math.min(remaining, x);
-			
-			for(int i = 0; i < x; i++) {
-				benchGet.mark();
-				pool.get();
-				benchGet.measure();
-			}
-			for(int i = 0; i < x; i++) {
-				benchRel.mark();
-				pool.release(object);
-				benchRel.measure();
-			}
 
-			remaining -= x;
-			if (remaining == 0) break;
-
-			x = rand.nextInt(initialCapacity * 100) + 1;
-			x = Math.min(remaining, x);
+		System.out.println("type=" + type + " initialCapacity=" + initialCapacity + " preloadCount=" + preloadCount + "\n");
+		
+		for(int y = 0; y < 2; y++) { // two passes (the first is to warmup)
 			
-			for(int i = 0; i < x; i++) {
-				benchGet.mark();
-				pool.get();
-				benchGet.measure();
-			}
-			for(int i = 0; i < x; i++) {
-				benchRel.mark();
-				pool.release(object);
-				benchRel.measure();
+			ObjectPool<Object> pool = createObjectPool(type ,initialCapacity, preloadCount, object);
+		
+			int callCount = 0;
+			
+			long start = System.nanoTime();
+			
+			Object obj = null;
+			
+			for(int i = 1; i <= initialCapacity * 100; i++) {
+				for(int x = 0; x < i; x++) {
+					obj = pool.get();
+				}
+				for(int x = 0; x < i; x++) {
+					pool.release(obj);
+				}
+				callCount += 2 * i;
 			}
 			
-			remaining -= x;
+			long time = System.nanoTime() - start;
+			
+			System.out.println(FORMATTER.format(time) + " nanoseconds for " + callCount + " calls");
 		}
 		
-		System.out.println("GET:");
-		benchGet.printResults();
-		
-		System.out.println("RELEASE:");
-		benchRel.printResults();
+		System.out.println();
 	}
 	
 	private static ObjectPool<Object> createObjectPool(Type type, int initialCapacity, int preloadCount, final Object object) {

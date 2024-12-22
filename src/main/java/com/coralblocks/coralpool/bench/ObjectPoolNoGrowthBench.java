@@ -25,7 +25,7 @@ import com.coralblocks.coralpool.StackObjectPool;
 import com.coralblocks.coralpool.TieredObjectPool;
 import com.coralblocks.coralpool.util.Builder;
 
-public class ObjectPoolGrowthBench2 {
+public class ObjectPoolNoGrowthBench {
 
 	private static enum Type { LINKED, ARRAY, MULTI, STACK, TIERED }
 	
@@ -53,7 +53,7 @@ public class ObjectPoolGrowthBench2 {
 			
 			Object obj = null;
 			
-			for(int i = 1; i <= initialCapacity * 100; i++) {
+			for(int i = 1; i <= initialCapacity; i++) {
 				for(int x = 0; x < i; x++) {
 					obj = pool.get();
 				}
