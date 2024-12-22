@@ -37,7 +37,7 @@ public interface ObjectPool<E> {
 	/**
 	 * Retrieves an instance from this object pool. If no instances are currently available,
 	 * a new instance will be created, and the pool will grow in size if necessary to 
-	 * accommodate more instances.
+	 * accommodate more instances. This method can never return <code>null</code>.
 	 * 
 	 * @return an instance from the pool
 	 */
