@@ -20,12 +20,15 @@ import java.util.Random;
 import com.coralblocks.coralbench.Bench;
 import com.coralblocks.coralpool.ArrayObjectPool;
 import com.coralblocks.coralpool.LinkedObjectPool;
+import com.coralblocks.coralpool.MultiArrayObjectPool;
 import com.coralblocks.coralpool.ObjectPool;
+import com.coralblocks.coralpool.StackObjectPool;
+import com.coralblocks.coralpool.TieredObjectPool;
 import com.coralblocks.coralpool.util.Builder;
 
-public class ObjectPoolBench1 {
+public class ObjectPoolNoGrowthBench1 {
 
-	private static enum Type { ARRAY, LINKED }
+	private static enum Type { LINKED, ARRAY, MULTI, STACK, TIERED }
 	
 	public static void main(String[] args) {
 		
@@ -40,12 +43,6 @@ public class ObjectPoolBench1 {
 		Bench benchRel = new Bench(warmup);
 		
 		final Object object = new Object();
-		Builder<Object> builder = new Builder<Object>() {
-			@Override
-			public Object newInstance() {
-				return object;
-			}
-		};
 		
 		System.out.println();
 		
@@ -53,14 +50,7 @@ public class ObjectPoolBench1 {
 			
 			Random rand = new Random(randomSeed);
 		
-			ObjectPool<Object> pool = null;
-			if (type == Type.LINKED) {
-				pool = new LinkedObjectPool<Object>(initialCapacity, preloadCount, builder);
-			} else if (type == Type.ARRAY) {
-				pool = new ArrayObjectPool<Object>(initialCapacity, preloadCount, builder);
-			} else {
-				throw new IllegalArgumentException("Bad type: " + type);
-			}
+			ObjectPool<Object> pool = createObjectPool(type, initialCapacity, preloadCount, object);
 			
 			System.out.println("type=" + pool.getClass().getSimpleName() + 
 							   " warmup=" + warmup + " measurements=" + measurements + "\n");
@@ -111,6 +101,30 @@ public class ObjectPoolBench1 {
 			
 			System.out.println("RELEASE:");
 			benchRel.printResults();
+		}
+	}
+	
+	private static ObjectPool<Object> createObjectPool(Type type, int initialCapacity, int preloadCount, final Object object) {
+		
+		Builder<Object> builder = new Builder<Object>() {
+			@Override
+			public Object newInstance() {
+				return object;
+			}
+		};
+		
+		if (type == Type.LINKED) {
+			return new LinkedObjectPool<Object>(initialCapacity, preloadCount, builder);
+		} else if (type == Type.ARRAY) {
+			return new ArrayObjectPool<Object>(initialCapacity, preloadCount, builder);
+		} else if (type == Type.MULTI) {
+			return new MultiArrayObjectPool<Object>(initialCapacity, preloadCount, builder);
+		} else if (type == Type.STACK) {
+			return new StackObjectPool<Object>(initialCapacity, preloadCount, builder);
+		} else if (type == Type.TIERED) {
+			return new TieredObjectPool<Object>(initialCapacity, preloadCount, builder);
+		} else {
+			throw new IllegalArgumentException("Bad type: " + type);
 		}
 	}
 }
