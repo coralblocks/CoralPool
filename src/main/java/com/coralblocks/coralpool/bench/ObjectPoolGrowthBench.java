@@ -69,13 +69,18 @@ public class ObjectPoolGrowthBench {
 			
 			long time = System.nanoTime() - start;
 			
+			if (time < 0) throw new RuntimeException("Took too long!");
+			
+			time = time / 1_000; // micros...
+			if (time == 0) time = 1;
+			
 			if (y > 0) totalTime += time;
 			
 			System.out.print("\rPass: ");
 			System.out.print(y);
 		}
 
-		System.out.println("\n\n" + FORMATTER.format(totalTime / passes) + " nanoseconds (passes=" + passes + ")");
+		System.out.println("\n\n" + FORMATTER.format(totalTime / passes) + " microseconds (passes=" + passes + ")");
 		System.out.println();
 	}
 	
