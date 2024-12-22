@@ -49,8 +49,8 @@ public interface ObjectPool<E> {
 	 * external instances that were not necessarily created by it. 
 	 * Passing <code>null</code> as the instance will result in an exception being thrown.
 	 * 
-	 * @param e the instance to return to the pool
+	 * @param instance the instance to return to the pool
 	 * @throws IllegalArgumentException if the provided instance is <code>null</code>
 	 */
-	public void release(E e);
+	public void release(E instance);
 }
