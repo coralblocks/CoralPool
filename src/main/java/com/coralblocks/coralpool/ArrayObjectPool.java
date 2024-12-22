@@ -169,7 +169,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		return toReturn;
 	}
 	
-	private final int grow(boolean copyAndShift) {
+	private final int grow(boolean growRight) {
 
 		int newLength = (int) (growthFactor * array.length); // casting faster than rounding
 		if (newLength == array.length) newLength++;
@@ -179,7 +179,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		
 		int offset = this.array.length;
 
-		if (copyAndShift) {
+		if (!growRight) {
 			offset = newArray.length - this.array.length; // shift to the the very end
 			System.arraycopy(this.array, 0, newArray, offset, this.array.length);
 			Arrays.fill(this.array, null);
@@ -198,7 +198,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	public final E get() {
 		
 		if (pointer == array.length) {
-			/*pointer = */grow(false); // pointer returned will be array length anyway!
+			/*pointer = */grow(true); // pointer returned will be array length anyway!
 		}
 		
 		E toReturn = this.array[pointer];
@@ -217,7 +217,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		ensureNotNull(object);
 		
 		if (pointer == 0) {
-			pointer = grow(true);
+			pointer = grow(false);
 		}
 		this.array[--pointer] = object;
 	}
