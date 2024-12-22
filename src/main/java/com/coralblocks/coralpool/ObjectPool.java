@@ -18,30 +18,39 @@ package com.coralblocks.coralpool;
 import com.coralblocks.coralpool.util.Builder;
 
 /**
- * <p>The contract of an object pool that can dispense instances through {@link #get()} and reclaim instances through {@link #release(E)}.</p>
+ * Defines the contract for an object pool that provides reusable instances via {@link #get()} 
+ * and reclaims them using {@link #release(E)}.
  * 
- * <p>The object pool can grow internally by creating more instances through its {@link Builder}.</p>
+ * <p>This object pool can dynamically expand by creating additional instances through its 
+ * {@link Builder}, ensuring sufficient capacity to meet demand.</p>
  * 
- * <p>The object pool must be garbage-free, in other words, it must not release references to the garbage collector.</p>
+ * <p>The object pool must be garbage-free, in other words, it must not release 
+ * references to the garbage collector.</p>
  * 
- * <p><b>NOTE:</b> This data structure is designed on purpose to be used by <b>single-threaded systems</b>, in other words, 
- *   it will break if used concurrently by multiple threads.</p>
- *
- * @param <E> the object being served by this object pool
+ * <p><b>IMPORTANT:</b> This data structure is explicitly designed for <b>single-threaded systems</b>. 
+ * Concurrent usage by multiple threads is not supported and will result in undefined behavior.</p>
+ * 
+ * @param <E> the type of objects managed by this object pool
  */
 public interface ObjectPool<E> {
 
 	/**
-	 * Dispense an instance from the pool
+	 * Retrieves an instance from this object pool. If no instances are currently available,
+	 * a new instance will be created, and the pool will grow in size if necessary to 
+	 * accommodate more instances.
 	 * 
 	 * @return an instance from the pool
 	 */
 	public E get();
 
 	/**
-	 * Return an instance to the pool. Trying to release <code>null</code> will throw exception.
+	 * Returns an instance to this object pool. If the pool has no available space 
+	 * to accommodate the instance, it will expand as needed. The pool can accept 
+	 * external instances that were not necessarily created by it. 
+	 * Passing <code>null</code> as the instance will result in an exception being thrown.
 	 * 
-	 * @param e the instance to be returned to the pool
+	 * @param e the instance to return to the pool
+	 * @throws IllegalArgumentException if the provided instance is <code>null</code>
 	 */
 	public void release(E e);
 }

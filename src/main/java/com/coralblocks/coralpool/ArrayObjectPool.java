@@ -23,29 +23,28 @@ import java.util.List;
 import com.coralblocks.coralpool.util.Builder;
 
 /**
- *  <p>An {@link ObjectPool} backed by an internal array. The pool doubles its size with each expansion, allowing you to continuously call {@link #get()} to 
- *  receive new instances. Essentially, the pool will never return a <code>null</code> object through its {@link #get()} method.</p>
- *  
- *  <p>You can also add instances from external sources, that is, instances not created by the pool, using the {@link #release(E)} method. If the pool is 
- *  full when you call {@link #release(E)}, it will grow to accommodate the new instance.</p>
- *  
- *  <p>When the pool grows, a larger internal array is allocated. Instead of discarding the previous array, it is stored 
- *  as a {@link java.lang.ref.SoftReference} to delay garbage collection. A <code>SoftReference</code> allows the JVM to postpone garbage collection until 
- *  memory is critically low, which should rarely occur. If needed, you can manually release these soft references by 
- *  calling the {@link #releaseSoftReferences()} method from the pool.</p>
- *
- * @param <E> the object being served by this object pool
+ * <p>An {@link ObjectPool} backed by an internal array.
+ * The pool can expand by reallocating a larger array to accommodate more instances.</p>
+ * 
+ * @param <E> the type of objects managed by this object pool
  */
 public class ArrayObjectPool<E> implements ObjectPool<E> {
 	
+	/**
+	 * The default growth factor to use if not specified
+	 */
 	public static float DEFAULT_GROWTH_FACTOR = 1.75f;
-	public static int DEFAULT_SOFT_REFERENCE_LIST_SIZE = 32;
+	
+	/**
+	 * The initial size of the list holding the soft references
+	 */
+	public static int DEFAULT_SOFT_REFERENCE_LIST_INITIAL_SIZE = 32;
 	
 	private E[] array;
 	private int pointer = 0;
 	private final Builder<E> builder;
 	private final float growthFactor;
-	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>(DEFAULT_SOFT_REFERENCE_LIST_SIZE);
+	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>(DEFAULT_SOFT_REFERENCE_LIST_INITIAL_SIZE);
 	
 	/**
 	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
@@ -73,6 +72,14 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		this(initialCapacity, initialCapacity, builder);
 	}
 	
+	/**
+	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
+	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
+	 * 
+	 * @param initialCapacity the initial capacity of the pool
+	 * @param builder the builder of the pool
+	 * @param growthFactor by how much the pool will grow when it has to grow
+	 */
 	public ArrayObjectPool(int initialCapacity, Builder<E> builder, float growthFactor) {
 		this(initialCapacity, initialCapacity, builder, growthFactor);
 	}
@@ -89,10 +96,27 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		this(initialCapacity, preloadCount, Builder.createBuilder(klass));
 	}
 	
+	/**
+	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The pool will be populated with the given preload count,
+	 * in other words, the pool will preallocate <code>preloadCount</code> instances at startup.
+	 *   
+	 * @param initialCapacity the initial capacity of the pool
+	 * @param preloadCount the number of instances to preallocate at startup
+	 * @param klass the class used as the builder of the pool
+	 * @param growthFactor by how much the pool will grow when it has to grow
+	 */
 	public ArrayObjectPool(int initialCapacity, int preloadCount, Class<E> klass, float growthFactor) {
 		this(initialCapacity, preloadCount, Builder.createBuilder(klass), growthFactor);
 	}
 	
+	/**
+	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The pool will be populated with the given preload count,
+	 * in other words, the pool will preallocate <code>preloadCount</code> instances at startup.
+	 *   
+	 * @param initialCapacity the initial capacity of the pool
+	 * @param preloadCount the number of instances to preallocate at startup
+	 * @param builder the builder of the pool
+	 */
 	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
 		this(initialCapacity, preloadCount, builder, DEFAULT_GROWTH_FACTOR);
 	}
@@ -104,6 +128,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param preloadCount the number of instances to preallocate at startup
 	 * @param builder the builder of the pool
+	 * @param growthFactor by how much the pool will grow when it has to grow
 	 */
 	@SuppressWarnings("unchecked")
 	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder, float growthFactor) {

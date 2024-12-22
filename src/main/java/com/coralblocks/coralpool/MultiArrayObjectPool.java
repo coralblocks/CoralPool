@@ -17,6 +17,12 @@ package com.coralblocks.coralpool;
 
 import com.coralblocks.coralpool.util.Builder;
 
+/**
+ * <p>An {@link ObjectPool} backed by an internal doubly linked-list of arrays.
+ * The pool can grow by adding a new node (with a new allocated array) to the linked-list.</p>
+ * 
+ * @param <E> the type of objects managed by this object pool
+ */
 public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	
 	static class ArrayHolder<E> {

@@ -18,9 +18,18 @@ package com.coralblocks.coralpool;
 import com.coralblocks.coralpool.util.Builder;
 import com.coralblocks.coralpool.util.LinkedObjectList;
 
+/**
+ * <p>An {@link ObjectPool} backed by two tiers: an internal stack (implemented with an array) and a linked-list.
+ * The pool can grow by adding new instances to the linked-list (second tier) so that the stack (first tier) never has to grow.</p>
+ * 
+ * @param <E> the type of objects managed by this object pool
+ */
 public class TieredObjectPool<E> implements ObjectPool<E> {
 	
-	public static int LINKED_LIST_INITIAL_CAPACITY_FACTOR = 3;
+	/**
+	 * The initial size of the linked-list used for the expansion of the pool (second tier) as a factor of the initial capacity of the pool
+	 */
+	public static int LINKED_LIST_CAPACITY_FACTOR = 3;
 	
 	private E[] array;
 	private int pointer = 0;
@@ -78,7 +87,7 @@ public class TieredObjectPool<E> implements ObjectPool<E> {
 		}
 		this.builder = builder;
 		this.pointer = initialCapacity; // important
-		this.linkedList = new LinkedObjectList<E>(initialCapacity * LINKED_LIST_INITIAL_CAPACITY_FACTOR);
+		this.linkedList = new LinkedObjectList<E>(initialCapacity * LINKED_LIST_CAPACITY_FACTOR);
 	}
 	
 	private void check(int initialCapacity, int preloadCount) {
