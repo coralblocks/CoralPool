@@ -1,5 +1,6 @@
 # CoralPool
-CoralPool is a _fast_, lightweight and garbage-free implementation of a Java _object pool_. It is designed to efficiently reuse mutable objects, minimizing the creation of _short-lived_ objects that would otherwise be discarded and processed by the garbage collector. It can grow to accommodate more instances by allocating new objects internally through the `get()` method and/or by accepting new objects through the `release(E)` method.
+
+CoralPool is a high-performance, lightweight and garbage-free Java _object pool_ implementation. It efficiently reuses mutable objects, minimizing the creation of _short-lived_ objects that would otherwise burden the garbage collector. The pool can grow to accommodate more instances by internally allocating new objects via the `get()` method or by accepting external objects (not originally allocated by the pool) through the `release(E)` method.
 
 <pre>
 <b>Note:</b> For a discussion of developing garbage-free applications you should refer to <a href="https://youtu.be/bhzv6lJtuOs">this video</a>
@@ -9,9 +10,25 @@ CoralPool is a _fast_, lightweight and garbage-free implementation of a Java _ob
 ```java
 public interface ObjectPool<E> {
 
+   /**
+    * Retrieves an instance from this object pool. If no instances are currently available,
+    * a new instance will be created, and the pool will grow in size if necessary to 
+    * accommodate more instances. This method can never return null.
+    * 
+    * @return an instance from the pool
+    */
     public E get();
 
-    public void release(E e);
+   /**
+    * Returns an instance to this object pool. If the pool has no available space 
+    * to accommodate the instance, it will expand as needed. The pool can accept 
+    * external instances that were not necessarily created by it. 
+    * Passing null as the instance will result in an exception being thrown.
+    * 
+    * @param instance the instance to return to the pool
+    * @throws IllegalArgumentException if the provided instance is null
+    */
+    public void release(E instance);
 }
 ```
 
@@ -39,117 +56,61 @@ StringBuilder sb = pool.get();
 // When you are done return the instance back to the pool
 pool.release(sb);
 ```
+## ObjectPool Implementations
 
-## LinkedObjectPool
+### LinkedObjectPool
 
-An `ObjectPool` backed by an internal linked-list. The pool can grow gradually by adding new nodes to the list. You can call `get()` forever and the pool will keep returning newly allocated instances through its internal `Builder<E>`. Basically the pool can never return a `null` object through its `get()` method.
+An `ObjectPool` backed by an internal linked-list. It can gradually grow by adding new nodes to the list.
 
-You can also add new instances from external sources, that is, instances not created by the pool, using the `release(E)` method.
-If the pool is full when you call `release(E)`, it will expand the underlying linked-list by adding a new node to accommodate the instance.
+### ArrayObjectPool
 
-## ArrayObjectPool
+An `ObjectPool` backed by an internal array. It can expand by allocating a larger array. When that happens, the previous array is retained as a [SoftReference](https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/ref/SoftReference.html) to delay garbage collection as much as possible.
+You can manually release these references by calling its `releaseSoftReferences()` public method.
 
-An `ObjectPool` backed by an internal array. The pool doubles its size with each expansion, allowing you to continuously call `get()` to receive new instances. Essentially, the pool will never return a `null` object through its `get()` method.
+### MultiArrayObjectPool
 
-You can also add instances from external sources, that is, instances not created by the pool, using the `release(E)` method. If the pool is full when you call `release(E)`, it will grow to accommodate the new instance.
+An `ObjectPool` backed by an internal doubly linked-list of arrays. It expands by adding new nodes, each containing a newly allocated array, to the linked-list.
 
-When the pool grows, a larger internal array is allocated. Instead of discarding the previous array, it is stored as a [SoftReference](https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/ref/SoftReference.html) to delay garbage collection. A `SoftReference` allows the JVM to postpone garbage collection until memory is critically low, which should rarely occur. If needed, you can manually release these soft references by calling the `releaseSoftReferences()` method from `ArrayObjectPool`.
+### StackObjectPool
+
+An `ObjectPool` backed by an internal stack, implemented with an array. It can expand by allocating a larger stack. When that happens, the previous array of the stack is retained as a [SoftReference](https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/ref/SoftReference.html) to delay garbage collection as much as possible.
+You can manually release these references by calling its `releaseSoftReferences()` public method.
+
+### TieredObjectPool
+
+An `ObjectPool` implementation utilizing a two-tier structure: an internal stack, implemented with an array, and a linked-list.
+It grows by adding new instances to the linked-list (second tier), ensuring the stack (first tier) remains a fixed size and does not require expansion.
 
 ## Benchmarks
 
-<pre><b>Note:</b> We are using <a href="https://www.github.com/coralblocks/CoralBench">CoralBench</a> for the benchmarks. Click on the arrows to expand the full results.</pre>
+Ideally, an object pool should be configured at startup with a big enough initial capacity to avoid growth, maximizing performance. However, since growth cannot always be avoided, we conducted two benchmarks: one where the pool remains fixed in size and another where it grows. In the growth benchmark, the pool expands exclusively through additional `get()` calls, not by adding external instances via the `release(E)` method. Adding external instances, those not created internally by the pool, is rarely needed or desirable.
 
-As detailed above, `ArrayObjectPool` has the drawback of having to allocate a new array to grow, but it is slightly faster than the `LinkedObjectPool`. You can find the benchmarks [here](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/bench/ObjectPoolBench1.java) and [here](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/bench/ObjectPoolBench2.java). Below the results:
+You can find the benchmarks [here](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/bench/ObjectPoolNoGrowthBench.java) (without growth) and [here](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/bench/ObjectPoolGrowthBench.java) (with growth). Below the results:
 
-<details>
-  <summary> ObjectPoolBenchmark1:</summary>
-
-<br/>
+### Benchmark (_without_ growth)
 
 ```
-$ java -verbose:gc -XX:+AlwaysPreTouch -Xms4g -Xmx4g -XX:NewSize=512m \
-        -XX:MaxNewSize=1024m -cp target/classes:target/coralpool-all.jar \
-        com.coralblocks.coralpool.bench.ObjectPoolBench1 1000000 5000000
-[0.022s][info][gc] Using G1
-
-type=ArrayObjectPool warmup=1000000 measurements=5000000
-
-GET:
-Measurements: 5,000,000 | Warm-Up: 1,000,000 | Iterations: 6,000,000
-Avg Time: 17.410 nanos | Min Time: 14.000 nanos | Max Time: 26.294 micros
-75% = [avg: 16.000 nanos, max: 18.000 nanos]
-90% = [avg: 16.000 nanos, max: 19.000 nanos]
-99% = [avg: 17.000 nanos, max: 21.000 nanos]
-99.9% = [avg: 17.000 nanos, max: 30.000 nanos]
-99.99% = [avg: 17.000 nanos, max: 110.000 nanos]
-99.999% = [avg: 17.000 nanos, max: 1.821 micros]
-
-RELEASE:
-Measurements: 5,000,000 | Warm-Up: 1,000,000 | Iterations: 6,000,000
-Avg Time: 17.410 nanos | Min Time: 14.000 nanos | Max Time: 33.848 micros
-75% = [avg: 16.000 nanos, max: 19.000 nanos]
-90% = [avg: 16.000 nanos, max: 19.000 nanos]
-99% = [avg: 17.000 nanos, max: 21.000 nanos]
-99.9% = [avg: 17.000 nanos, max: 29.000 nanos]
-99.99% = [avg: 17.000 nanos, max: 78.000 nanos]
-99.999% = [avg: 17.000 nanos, max: 1.367 micros]
-
-type=LinkedObjectPool warmup=1000000 measurements=5000000
-
-GET:
-Measurements: 5,000,000 | Warm-Up: 1,000,000 | Iterations: 6,000,000
-Avg Time: 25.000 nanos | Min Time: 16.000 nanos | Max Time: 22.628 micros
-75% = [avg: 24.000 nanos, max: 25.000 nanos]
-90% = [avg: 24.000 nanos, max: 25.000 nanos]
-99% = [avg: 24.000 nanos, max: 34.000 nanos]
-99.9% = [avg: 24.000 nanos, max: 146.000 nanos]
-99.99% = [avg: 24.000 nanos, max: 257.000 nanos]
-99.999% = [avg: 24.000 nanos, max: 723.000 nanos]
-
-RELEASE:
-Measurements: 5,000,000 | Warm-Up: 1,000,000 | Iterations: 6,000,000
-Avg Time: 27.020 nanos | Min Time: 17.000 nanos | Max Time: 25.742 micros
-75% = [avg: 26.000 nanos, max: 27.000 nanos]
-90% = [avg: 26.000 nanos, max: 28.000 nanos]
-99% = [avg: 26.000 nanos, max: 29.000 nanos]
-99.9% = [avg: 26.000 nanos, max: 155.000 nanos]
-99.99% = [avg: 26.000 nanos, max: 267.000 nanos]
-99.999% = [avg: 26.000 nanos, max: 737.000 nanos]
-```
-</details>
-
-```
-ArrayObjectPool     get()   => Avg: 17 ns | Min: 14 ns | 99.9% = [avg: 17 ns, max: 30 ns]
-                 release(E) => Avg: 17 ns | Min: 14 ns | 99.9% = [avg: 17 ns, max: 29 ns]
-
-LinkedObjectPool    get()   => Avg: 25 ns | Min: 16 ns | 99.9% = [avg: 24 ns, max: 146 ns]
-                 release(E) => Avg: 27 ns | Min: 17 ns | 99.9% = [avg: 26 ns, max: 155 ns]
+LinkedObjectPool        => 9,698,254 nanoseconds
+ArrayObjectPool         => 3,658,073 nanoseconds     
+MultiArrayObjectPool    => 3,900,745 nanoseconds
+StackObjectPool         => 3,813,075 nanoseconds
+TieredObjectPool        => 3,828,071 nanoseconds                   
 ```
 
-<details>
-  <summary> ObjectPoolBenchmark2:</summary>
+The results above are expected as native arrays are faster than linked lists because they store elements in contiguous memory, enhancing cache locality and sequential access. In contrast, linked lists use scattered references across memory, leading to more cache misses and slower traversal time due to the overhead of following pointers.
 
-<br/>
+### Benchmark (_with_ growth)
 
 ```
-$ java -verbose:gc -XX:+AlwaysPreTouch -Xms4g -Xmx4g -XX:NewSize=512m \
-        -XX:MaxNewSize=1024m -cp target/classes:target/coralpool-all.jar \
-        com.coralblocks.coralpool.bench.ObjectPoolBench2 100
-[0.024s][info][gc] Using G1
-
-type=ArrayObjectPool initialCapacity=100 preloadCount=50
-
-401,221 nanoseconds for 10100 calls
-
-type=LinkedObjectPool initialCapacity=100 preloadCount=50
-
-638,698 nanoseconds for 10100 calls
+LinkedObjectPool        => 241,073 microseconds
+ArrayObjectPool         => 87,784 microseconds     
+MultiArrayObjectPool    => 162,697 microseconds
+StackObjectPool         => 129,899 microseconds
+TieredObjectPool        => 252,239 microseconds                   
 ```
-</details>
 
-The latency difference is small (few nanoseconds) but if you call `get()` and `release(E)` thousands of times it can add up.
-```
-ArrayObjectPool   => 401,221 nanoseconds for 10100 calls
+The above results are expected because `TieredObjectPool` uses a linked list for growth, leading to the same cache miss inefficiencies observed in the previous benchmark _without_ growth. In contrast, `ArrayObjectPool` clearly outperforms all others, as its [growth implementation](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/ArrayObjectPool.java#L187) is more efficient by avoiding both array copying and nulling.
 
-LinkedObjectPool  => 638,698 nanoseconds for 10100 calls
-```
+<pre>
+<b>Note:</b> All benchmarks are executed with <i>-verbose:gc</i> to make sure no GC activity ever takes place.
+</pre>
