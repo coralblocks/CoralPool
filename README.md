@@ -91,7 +91,7 @@ You can find the benchmarks [here](https://github.com/coralblocks/CoralPool/blob
 
 ```
 LinkedObjectPool        => 9,698,254 nanoseconds
-ArrayObjectPool         => 3,658,073 nanoseconds     
+ArrayObjectPool         => <b>3,658,073 nanoseconds</b>     
 MultiArrayObjectPool    => 3,900,745 nanoseconds
 StackObjectPool         => 3,813,075 nanoseconds
 TieredObjectPool        => 3,828,071 nanoseconds                   
@@ -103,7 +103,7 @@ The results above are expected as native arrays are faster than linked lists bec
 
 ```
 LinkedObjectPool        => 241,073 microseconds
-ArrayObjectPool         => 87,784 microseconds     
+ArrayObjectPool         => <b>87,784 microseconds</b>     
 MultiArrayObjectPool    => 162,697 microseconds
 StackObjectPool         => 129,899 microseconds
 TieredObjectPool        => 252,239 microseconds                   
@@ -112,5 +112,5 @@ TieredObjectPool        => 252,239 microseconds
 The above results are expected because `TieredObjectPool` uses a linked list for growth, leading to the same cache miss inefficiencies observed in the previous benchmark _without_ growth. In contrast, `ArrayObjectPool` clearly outperforms all others, as its [growth implementation](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/ArrayObjectPool.java#L187) is more efficient by avoiding both array copying and nulling.
 
 <pre>
-<b>Note:</b> All benchmarks are executed with <i>-verbose:gc</i> to make sure no GC activity ever takes place.
+<b>Note:</b> All benchmarks were executed with <i>-verbose:gc</i> to make sure no GC activity ever takes place
 </pre>
