@@ -87,6 +87,10 @@ Ideally, an object pool should be configured at startup with a big enough initia
 
 You can find the benchmarks [here](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/bench/ObjectPoolNoGrowthBench.java) (without growth) and [here](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/bench/ObjectPoolGrowthBench.java) (with growth). Below the results:
 
+<pre>
+<b>Note:</b> We used the new <b>JVMCI</b> JIT (from Graal 23) for the benchmarks below
+</pre>
+
 ### Benchmark (_without_ growth)
 
 <pre>
