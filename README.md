@@ -78,8 +78,8 @@ You can manually release these references by calling its `releaseSoftReferences(
 
 ### TieredObjectPool
 
-An `ObjectPool` implementation utilizing a two-tier structure: an internal stack, implemented with an array, and a linked-list.
-It grows by adding new instances to the linked-list (second tier), ensuring the stack (first tier) remains a fixed size and does not require expansion.
+An `ObjectPool` implementation utilizing a two-tier structure: an internal array and a linked-list.
+It grows by adding new instances to the linked-list (second tier), ensuring the array (first tier) remains a fixed size and does not require expansion.
 
 ## Benchmarks
 
