@@ -57,11 +57,11 @@ import com.coralblocks.coralpool.util.Builder;
  	public void testConstructorWithClass_PartialPreload() { 
  		TieredObjectPool<MyObject> pool = new TieredObjectPool<>(5, 3, MyObject.class); 
  		assertEquals(5, pool.getArrayLength()); 
- 		assertNull(pool.getArrayElement(0)); 
- 		assertNull(pool.getArrayElement(1)); 
+ 		assertNotNull(pool.getArrayElement(0)); 
+ 		assertNotNull(pool.getArrayElement(1)); 
  		assertNotNull(pool.getArrayElement(2)); 
- 		assertNotNull(pool.getArrayElement(3)); 
- 		assertNotNull(pool.getArrayElement(4)); 
+ 		assertNull(pool.getArrayElement(3)); 
+ 		assertNull(pool.getArrayElement(4)); 
  		assertEquals(0, pool.getLinkedList().size()); 
  	} 
 
@@ -70,11 +70,11 @@ import com.coralblocks.coralpool.util.Builder;
  		Builder<MyObject> builder = Builder.createBuilder(MyObject.class); 
  		TieredObjectPool<MyObject> pool = new TieredObjectPool<>(5, 3, builder); 
  		assertEquals(5, pool.getArrayLength()); 
- 		assertNull(pool.getArrayElement(0)); 
- 		assertNull(pool.getArrayElement(1)); 
+ 		assertNotNull(pool.getArrayElement(0)); 
+ 		assertNotNull(pool.getArrayElement(1)); 
  		assertNotNull(pool.getArrayElement(2)); 
- 		assertNotNull(pool.getArrayElement(3)); 
- 		assertNotNull(pool.getArrayElement(4)); 
+ 		assertNull(pool.getArrayElement(3)); 
+ 		assertNull(pool.getArrayElement(4)); 
  		assertEquals(0, pool.getLinkedList().size()); 
  	} 
 

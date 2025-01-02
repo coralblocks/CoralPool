@@ -19,8 +19,8 @@ import com.coralblocks.coralpool.util.Builder;
 import com.coralblocks.coralpool.util.LinkedObjectList;
 
 /**
- * <p>An {@link ObjectPool} backed by two tiers: an internal stack (implemented with an array) and a linked-list.
- * The pool can grow by adding new instances to the linked-list (second tier) so that the stack (first tier) never has to grow.</p>
+ * <p>An {@link ObjectPool} backed by two tiers: an internal array and a linked-list.
+ * The pool can grow by adding new instances to the linked-list (second tier) so that the array (first tier) never has to grow.</p>
  * 
  * @param <E> the type of objects managed by this object pool
  */
@@ -82,11 +82,10 @@ public class TieredObjectPool<E> implements ObjectPool<E> {
 	public TieredObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
 		check(initialCapacity, preloadCount);
 		this.array = (E[]) new Object[initialCapacity];
-		for(int i = initialCapacity - preloadCount; i < initialCapacity; i++) {
+		for(int i = 0; i < preloadCount; i++) {
 			this.array[i] = builder.newInstance();
 		}
 		this.builder = builder;
-		this.pointer = initialCapacity; // important
 		this.linkedList = new LinkedObjectList<E>(initialCapacity * LINKED_LIST_CAPACITY_FACTOR);
 	}
 	
@@ -111,21 +110,19 @@ public class TieredObjectPool<E> implements ObjectPool<E> {
 	@Override
 	public final E get() {
 		
-		if (pointer == 0) {
-			E toReturn = linkedList.removeLast();
-			if (toReturn == null) {
-				toReturn = builder.newInstance();
-			}
-			return toReturn;
+		if (!linkedList.isEmpty()) { // always return from the list first
+			return linkedList.removeLast();
+		} else if (pointer == array.length) { // array also has nothing
+			return builder.newInstance();
 		}
 		
-		E toReturn = this.array[--pointer];
-		if (toReturn != null) {
-			this.array[pointer] = null;
+		E toReturn = this.array[pointer];
+		if (toReturn == null) {
+			toReturn = builder.newInstance(); // might need to populate due to preloadCount < initialCapacity
 		} else {
-			toReturn = builder.newInstance();
+			this.array[pointer] = null; // nullify on disposal (always)
 		}
-		
+		pointer++;
 		return toReturn;
 	}
 	
@@ -134,10 +131,10 @@ public class TieredObjectPool<E> implements ObjectPool<E> {
 		
 		ensureNotNull(object);
 		
-		if (pointer == array.length) {
+		if (pointer > 0) { // always return to the array first, if there is space
+			this.array[--pointer] = object;
+		} else { // if not then return to linked-list
 			linkedList.addLast(object);
-		} else {
-			this.array[pointer++] = object;
 		}
 	}
 	
