@@ -21,14 +21,11 @@ import com.coralblocks.coralpool.util.Builder;
  * Defines the contract for an object pool that provides reusable instances via {@link #get()} 
  * and reclaims them using {@link #release(E)}.
  * 
- * <p>This object pool can dynamically expand by creating additional instances through its 
+ * <p>This object pool can dynamically grow by creating additional instances through its 
  * {@link Builder}, ensuring sufficient capacity to meet demand.</p>
  * 
  * <p>The object pool must be garbage-free, in other words, it must not release 
  * references to the garbage collector.</p>
- * 
- * <p><b>IMPORTANT:</b> This data structure is explicitly designed for <b>single-threaded systems</b>. 
- * Concurrent usage by multiple threads is not supported and will result in undefined behavior.</p>
  * 
  * @param <E> the type of objects managed by this object pool
  */

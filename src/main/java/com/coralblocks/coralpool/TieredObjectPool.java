@@ -22,6 +22,12 @@ import com.coralblocks.coralpool.util.LinkedObjectList;
  * <p>An {@link ObjectPool} backed by two tiers: an internal array and a linked-list.
  * The pool can grow by adding new instances to the linked-list (second tier) so that the array (first tier) never has to grow.</p>
  * 
+ * <p><b>NOTE:</b> This {@link ObjectPool} is intentionally designed for <b>single-threaded systems</b>. 
+ * It is <i>not</i> thread-safe and will fail if accessed concurrently by multiple threads. 
+ * If you require concurrent access, you must implement your own synchronization, which will inevitably 
+ * introduce a significant performance overhead. Most systems we work with are inherently single-threaded, 
+ * making synchronization unnecessary and allowing for maximum performance.</p>
+ * 
  * @param <E> the type of objects managed by this object pool
  */
 public class TieredObjectPool<E> implements ObjectPool<E> {

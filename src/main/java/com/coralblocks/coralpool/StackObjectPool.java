@@ -26,6 +26,12 @@ import com.coralblocks.coralpool.util.Builder;
  * <p>An {@link ObjectPool} backed by an internal stack (implemented with an array).
  * The pool can expand by reallocating a larger stack to accommodate more instances.</p>
  * 
+ * <p><b>NOTE:</b> This {@link ObjectPool} is intentionally designed for <b>single-threaded systems</b>. 
+ * It is <i>not</i> thread-safe and will fail if accessed concurrently by multiple threads. 
+ * If you require concurrent access, you must implement your own synchronization, which will inevitably 
+ * introduce a significant performance overhead. Most systems we work with are inherently single-threaded, 
+ * making synchronization unnecessary and allowing for maximum performance.</p>
+ * 
  * @param <E> the type of objects managed by this object pool
  */
 public class StackObjectPool<E> implements ObjectPool<E> {
