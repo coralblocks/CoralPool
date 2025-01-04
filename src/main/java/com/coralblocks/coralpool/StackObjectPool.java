@@ -16,11 +16,10 @@
 package com.coralblocks.coralpool;
 
 import java.lang.ref.SoftReference;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import com.coralblocks.coralpool.util.Builder;
+import com.coralblocks.coralpool.util.LinkedObjectList;
 
 /**
  * <p>An {@link ObjectPool} backed by an internal stack (implemented with an array).
@@ -41,16 +40,16 @@ public class StackObjectPool<E> implements ObjectPool<E> {
 	 */
 	public static float DEFAULT_GROWTH_FACTOR = 1.75f;
 	
-	/**
-	 * The initial size of the list holding the soft references
+	/*
+	 * Our LinkedObjectList does not produce any garbage, not even when it grows
 	 */
-	public static int DEFAULT_SOFT_REFERENCE_LIST_INITIAL_SIZE = 32;
+	private final static int SOFT_REFERENCE_LINKED_LIST_INITIAL_SIZE = 32;
 	
 	private E[] array;
 	private int pointer = 0;
 	private final Builder<E> builder;
 	private final float growthFactor;
-	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>(DEFAULT_SOFT_REFERENCE_LIST_INITIAL_SIZE);
+	private final LinkedObjectList<SoftReference<E[]>> oldArrays = new LinkedObjectList<SoftReference<E[]>>(SOFT_REFERENCE_LINKED_LIST_INITIAL_SIZE);
 	
 	/**
 	 * Creates a new <code>StackObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
@@ -196,7 +195,7 @@ public class StackObjectPool<E> implements ObjectPool<E> {
         System.arraycopy(array, 0, newArray, 0, array.length);
         Arrays.fill(array, null);
         
-        oldArrays.add(new SoftReference<E[]>(this.array));
+        oldArrays.addLast(new SoftReference<E[]>(this.array));
         
         this.array = newArray;
     }

@@ -16,11 +16,10 @@
 package com.coralblocks.coralpool;
 
 import java.lang.ref.SoftReference;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import com.coralblocks.coralpool.util.Builder;
+import com.coralblocks.coralpool.util.LinkedObjectList;
 
 /**
  * <p>An {@link ObjectPool} backed by an internal array.
@@ -31,7 +30,7 @@ import com.coralblocks.coralpool.util.Builder;
  * If you require concurrent access, you must implement your own synchronization, which will inevitably 
  * introduce a significant performance overhead. Most systems we work with are inherently single-threaded, 
  * making synchronization unnecessary and allowing for maximum performance.</p>
-
+ *
  * @param <E> the type of objects managed by this object pool
  */
 public class ArrayObjectPool<E> implements ObjectPool<E> {
@@ -41,16 +40,16 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	 */
 	public static float DEFAULT_GROWTH_FACTOR = 1.75f;
 	
-	/**
-	 * The initial size of the list holding the soft references
+	/*
+	 * Our LinkedObjectList does not produce any garbage, not even when it grows
 	 */
-	public static int DEFAULT_SOFT_REFERENCE_LIST_INITIAL_SIZE = 32;
+	private final static int SOFT_REFERENCE_LINKED_LIST_INITIAL_SIZE = 32;
 	
 	private E[] array;
 	private int pointer = 0;
 	private final Builder<E> builder;
 	private final float growthFactor;
-	private final List<SoftReference<E[]>> oldArrays = new ArrayList<SoftReference<E[]>>(DEFAULT_SOFT_REFERENCE_LIST_INITIAL_SIZE);
+	private final LinkedObjectList<SoftReference<E[]>> oldArrays = new LinkedObjectList<SoftReference<E[]>>(SOFT_REFERENCE_LINKED_LIST_INITIAL_SIZE);
 	
 	/**
 	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
@@ -193,7 +192,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 			// No need to perform any copying here as the previous array will have only nulls!
 		}
 
-		oldArrays.add(new SoftReference<E[]>(this.array)); // delay gc
+		oldArrays.addLast(new SoftReference<E[]>(this.array)); // delay gc
 
 		this.array = newArray;
 		
