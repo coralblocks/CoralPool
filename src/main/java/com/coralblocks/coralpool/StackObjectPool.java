@@ -38,7 +38,7 @@ public class StackObjectPool<E> implements ObjectPool<E> {
 	/**
 	 * The default growth factor to use if not specified
 	 */
-	public static float DEFAULT_GROWTH_FACTOR = 1.75f;
+	public static final float DEFAULT_GROWTH_FACTOR = 1.75f;
 	
 	/*
 	 * Our LinkedObjectList does not produce any garbage, not even when it grows
