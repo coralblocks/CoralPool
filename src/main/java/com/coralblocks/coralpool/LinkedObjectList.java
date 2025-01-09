@@ -13,7 +13,7 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package com.coralblocks.coralpool.util;
+package com.coralblocks.coralpool;
 
 import java.util.Iterator;
 
@@ -25,7 +25,7 @@ import java.util.Iterator;
  * 
  * @param <E> the type of objects this object list will hold
  */
-public class LinkedObjectList<E> implements Iterable<E> {
+class LinkedObjectList<E> implements Iterable<E> {
 
 	private static class Entry<E> {
 		E value = null;
@@ -44,7 +44,7 @@ public class LinkedObjectList<E> implements Iterable<E> {
 	 * 
 	 * @param initialCapacity the initial number of preallocated internal entries
 	 */
-	public LinkedObjectList(int initialCapacity) {
+	LinkedObjectList(int initialCapacity) {
 		for(int i = 0; i < initialCapacity; i++) {
 			releaseEntryBackToPool(new Entry<E>());
 		}

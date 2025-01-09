@@ -16,7 +16,6 @@
 package com.coralblocks.coralpool;
 
 import com.coralblocks.coralpool.util.Builder;
-import com.coralblocks.coralpool.util.LinkedObjectList;
 
 /**
  * <p>An {@link ObjectPool} backed by an internal linked-list.

@@ -19,7 +19,6 @@ import java.lang.ref.SoftReference;
 import java.util.Arrays;
 
 import com.coralblocks.coralpool.util.Builder;
-import com.coralblocks.coralpool.util.LinkedObjectList;
 
 /**
  * <p>An {@link ObjectPool} backed by an internal array.
