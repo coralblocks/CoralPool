@@ -19,12 +19,10 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import com.coralblocks.coralpool.util.Builder;
-
 public class ArrayObjectPoolGetTest {
 
     // Simple builder that returns incrementing integers
-    private static class IntegerBuilder implements Builder<Integer> {
+    private static class IntegerBuilder implements ObjectBuilder<Integer> {
         private int counter = 0;
         @Override
         public Integer newInstance() {

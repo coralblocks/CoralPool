@@ -15,8 +15,6 @@
  */
 package com.coralblocks.coralpool;
 
-import com.coralblocks.coralpool.util.Builder;
-
 /**
  * <p>An {@link ObjectPool} backed by two tiers: an internal array and a linked-list.
  * The pool can grow by adding new instances to the linked-list (second tier) so that the array (first tier) never has to grow.</p>
@@ -38,7 +36,7 @@ public class TieredObjectPool<E> implements ObjectPool<E> {
 	
 	private E[] array;
 	private int pointer = 0;
-	private final Builder<E> builder;
+	private final ObjectBuilder<E> builder;
 	private final LinkedObjectList<E> linkedList;
 	
 	/**
@@ -46,10 +44,10 @@ public class TieredObjectPool<E> implements ObjectPool<E> {
 	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
 	 * 
 	 * @param initialCapacity the initial capacity of the pool
-	 * @param klass the class used as the builder of the pool
+	 * @param klass the class used as the {@code ObjectBuilder} of the pool
 	 */
 	public TieredObjectPool(int initialCapacity, Class<E> klass) {
-		this(initialCapacity, Builder.createBuilder(klass));
+		this(initialCapacity, ObjectBuilder.createBuilder(klass));
 	}	
 	
 	/**
@@ -57,9 +55,9 @@ public class TieredObjectPool<E> implements ObjectPool<E> {
 	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
 	 * 
 	 * @param initialCapacity the initial capacity of the pool
-	 * @param builder the builder of the pool
+	 * @param builder the {@code ObjectBuilder} of the pool
 	 */
-	public TieredObjectPool(int initialCapacity, Builder<E> builder) {
+	public TieredObjectPool(int initialCapacity, ObjectBuilder<E> builder) {
 		this(initialCapacity, initialCapacity, builder);
 	}
 	
@@ -69,10 +67,10 @@ public class TieredObjectPool<E> implements ObjectPool<E> {
 	 *   
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param preloadCount the number of instances to preallocate at startup
-	 * @param klass the class used as the builder of the pool
+	 * @param klass the class used as the {@code ObjectBuilder} of the pool
 	 */
 	public TieredObjectPool(int initialCapacity, int preloadCount, Class<E> klass) {
-		this(initialCapacity, preloadCount, Builder.createBuilder(klass));
+		this(initialCapacity, preloadCount, ObjectBuilder.createBuilder(klass));
 	}
 	
 	/**
@@ -81,10 +79,10 @@ public class TieredObjectPool<E> implements ObjectPool<E> {
 	 *   
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param preloadCount the number of instances to preallocate at startup
-	 * @param builder the builder of the pool
+	 * @param builder the {@code ObjectBuilder} of the pool
 	 */
 	@SuppressWarnings("unchecked")
-	public TieredObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
+	public TieredObjectPool(int initialCapacity, int preloadCount, ObjectBuilder<E> builder) {
 		check(initialCapacity, preloadCount);
 		this.array = (E[]) new Object[initialCapacity];
 		for(int i = 0; i < preloadCount; i++) {

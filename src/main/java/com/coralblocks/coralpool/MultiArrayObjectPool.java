@@ -15,8 +15,6 @@
  */
 package com.coralblocks.coralpool;
 
-import com.coralblocks.coralpool.util.Builder;
-
 /**
  * <p>An {@link ObjectPool} backed by an internal doubly linked-list of arrays.
  * The pool can grow by adding a new node (with a new allocated array) to the linked-list.</p>
@@ -44,7 +42,7 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	
 	private ArrayHolder<E> arrayHolder;
 	private int pointer = 0;
-	private final Builder<E> builder;
+	private final ObjectBuilder<E> builder;
 	private final int preloadCount;
 	private final int arrayLength;
 	
@@ -53,10 +51,10 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
 	 * 
 	 * @param initialCapacity the initial capacity of the pool
-	 * @param klass the class used as the builder of the pool
+	 * @param klass the class used as the {@code ObjectBuilder} of the pool
 	 */
 	public MultiArrayObjectPool(int initialCapacity, Class<E> klass) {
-		this(initialCapacity, Builder.createBuilder(klass));
+		this(initialCapacity, ObjectBuilder.createBuilder(klass));
 	}	
 	
 	/**
@@ -64,9 +62,9 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
 	 * 
 	 * @param initialCapacity the initial capacity of the pool
-	 * @param builder the builder of the pool
+	 * @param builder the {@code ObjectBuilder} of the pool
 	 */
-	public MultiArrayObjectPool(int initialCapacity, Builder<E> builder) {
+	public MultiArrayObjectPool(int initialCapacity, ObjectBuilder<E> builder) {
 		this(initialCapacity, initialCapacity, builder);
 	}
 	
@@ -76,10 +74,10 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	 *   
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param preloadCount the number of instances to preallocate at startup
-	 * @param klass the class used as the builder of the pool
+	 * @param klass the class used as the {@code ObjectBuilder} of the pool
 	 */
 	public MultiArrayObjectPool(int initialCapacity, int preloadCount, Class<E> klass) {
-		this(initialCapacity, preloadCount, Builder.createBuilder(klass));
+		this(initialCapacity, preloadCount, ObjectBuilder.createBuilder(klass));
 	}
 
 	/**
@@ -88,9 +86,9 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	 *   
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param preloadCount the number of instances to preallocate at startup
-	 * @param builder the builder of the pool
+	 * @param builder the {@code ObjectBuilder} of the pool
 	 */
-	public MultiArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
+	public MultiArrayObjectPool(int initialCapacity, int preloadCount, ObjectBuilder<E> builder) {
 		check(initialCapacity, preloadCount);
 		this.arrayLength = initialCapacity;
 		this.preloadCount = preloadCount;

@@ -20,10 +20,10 @@ import java.text.DecimalFormat;
 import com.coralblocks.coralpool.ArrayObjectPool;
 import com.coralblocks.coralpool.LinkedObjectPool;
 import com.coralblocks.coralpool.MultiArrayObjectPool;
+import com.coralblocks.coralpool.ObjectBuilder;
 import com.coralblocks.coralpool.ObjectPool;
 import com.coralblocks.coralpool.StackObjectPool;
 import com.coralblocks.coralpool.TieredObjectPool;
-import com.coralblocks.coralpool.util.Builder;
 
 public class ObjectPoolGrowthBench {
 
@@ -86,7 +86,7 @@ public class ObjectPoolGrowthBench {
 	
 	private static ObjectPool<Object> createObjectPool(Type type, int initialCapacity, int preloadCount, final Object object) {
 		
-		Builder<Object> builder = new Builder<Object>() {
+		ObjectBuilder<Object> builder = new ObjectBuilder<Object>() {
 			@Override
 			public Object newInstance() {
 				return object;

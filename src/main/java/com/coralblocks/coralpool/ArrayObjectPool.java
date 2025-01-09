@@ -18,8 +18,6 @@ package com.coralblocks.coralpool;
 import java.lang.ref.SoftReference;
 import java.util.Arrays;
 
-import com.coralblocks.coralpool.util.Builder;
-
 /**
  * <p>An {@link ObjectPool} backed by an internal array.
  * The pool can expand by reallocating a larger array to accommodate more instances.</p>
@@ -46,7 +44,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	
 	private E[] array;
 	private int pointer = 0;
-	private final Builder<E> builder;
+	private final ObjectBuilder<E> builder;
 	private final float growthFactor;
 	private final LinkedObjectList<SoftReference<E[]>> oldArrays = new LinkedObjectList<SoftReference<E[]>>(SOFT_REFERENCE_LINKED_LIST_INITIAL_SIZE);
 	
@@ -55,14 +53,14 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
 	 * 
 	 * @param initialCapacity the initial capacity of the pool
-	 * @param klass the class used as the builder of the pool
+	 * @param klass the class used as the {@code ObjectBuilder} of the pool
 	 */
 	public ArrayObjectPool(int initialCapacity, Class<E> klass) {
-		this(initialCapacity, Builder.createBuilder(klass));
+		this(initialCapacity, ObjectBuilder.createBuilder(klass));
 	}	
 	
 	public ArrayObjectPool(int initialCapacity, Class<E> klass, float growthFactor) {
-		this(initialCapacity, Builder.createBuilder(klass), growthFactor);
+		this(initialCapacity, ObjectBuilder.createBuilder(klass), growthFactor);
 	}
 	
 	/**
@@ -70,9 +68,9 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
 	 * 
 	 * @param initialCapacity the initial capacity of the pool
-	 * @param builder the builder of the pool
+	 * @param builder the {@code ObjectBuilder} of the pool
 	 */
-	public ArrayObjectPool(int initialCapacity, Builder<E> builder) {
+	public ArrayObjectPool(int initialCapacity, ObjectBuilder<E> builder) {
 		this(initialCapacity, initialCapacity, builder);
 	}
 	
@@ -81,10 +79,10 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
 	 * 
 	 * @param initialCapacity the initial capacity of the pool
-	 * @param builder the builder of the pool
+	 * @param builder the {@code ObjectBuilder} of the pool
 	 * @param growthFactor by how much the pool will grow when it has to grow
 	 */
-	public ArrayObjectPool(int initialCapacity, Builder<E> builder, float growthFactor) {
+	public ArrayObjectPool(int initialCapacity, ObjectBuilder<E> builder, float growthFactor) {
 		this(initialCapacity, initialCapacity, builder, growthFactor);
 	}
 	
@@ -94,10 +92,10 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	 *   
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param preloadCount the number of instances to preallocate at startup
-	 * @param klass the class used as the builder of the pool
+	 * @param klass the class used as the {@code ObjectBuilder} of the pool
 	 */
 	public ArrayObjectPool(int initialCapacity, int preloadCount, Class<E> klass) {
-		this(initialCapacity, preloadCount, Builder.createBuilder(klass));
+		this(initialCapacity, preloadCount, ObjectBuilder.createBuilder(klass));
 	}
 	
 	/**
@@ -106,11 +104,11 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	 *   
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param preloadCount the number of instances to preallocate at startup
-	 * @param klass the class used as the builder of the pool
+	 * @param klass the class used as the {@code ObjectBuilder} of the pool
 	 * @param growthFactor by how much the pool will grow when it has to grow
 	 */
 	public ArrayObjectPool(int initialCapacity, int preloadCount, Class<E> klass, float growthFactor) {
-		this(initialCapacity, preloadCount, Builder.createBuilder(klass), growthFactor);
+		this(initialCapacity, preloadCount, ObjectBuilder.createBuilder(klass), growthFactor);
 	}
 	
 	/**
@@ -119,9 +117,9 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	 *   
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param preloadCount the number of instances to preallocate at startup
-	 * @param builder the builder of the pool
+	 * @param builder the {@code ObjectBuilder} of the pool
 	 */
-	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
+	public ArrayObjectPool(int initialCapacity, int preloadCount, ObjectBuilder<E> builder) {
 		this(initialCapacity, preloadCount, builder, DEFAULT_GROWTH_FACTOR);
 	}
 
@@ -131,11 +129,11 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	 *   
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param preloadCount the number of instances to preallocate at startup
-	 * @param builder the builder of the pool
+	 * @param builder the {@code ObjectBuilder} of the pool
 	 * @param growthFactor by how much the pool will grow when it has to grow
 	 */
 	@SuppressWarnings("unchecked")
-	public ArrayObjectPool(int initialCapacity, int preloadCount, Builder<E> builder, float growthFactor) {
+	public ArrayObjectPool(int initialCapacity, int preloadCount, ObjectBuilder<E> builder, float growthFactor) {
 		check(initialCapacity, preloadCount, growthFactor);
 		this.growthFactor = growthFactor;
 		this.array = (E[]) new Object[initialCapacity];

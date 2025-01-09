@@ -18,12 +18,10 @@ package com.coralblocks.coralpool;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-import com.coralblocks.coralpool.util.Builder;
-
 public class ArrayObjectPoolReleaseTest {
 
     // A simple builder for testing: it creates incrementing integers starting at 0
-    private static class IntegerBuilder implements Builder<Integer> {
+    private static class IntegerBuilder implements ObjectBuilder<Integer> {
         private int counter = 0;
         @Override
         public Integer newInstance() {

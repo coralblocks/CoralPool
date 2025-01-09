@@ -20,8 +20,6 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.coralblocks.coralpool.util.Builder;
-
 public class StackObjectPoolTest {
     
     private StackObjectPool<String> pool;
@@ -303,14 +301,14 @@ public class StackObjectPoolTest {
     }
 
     // Builder for TestObject
-    Builder<TestObject> testObjectBuilder = new Builder<TestObject>() {
+    ObjectBuilder<TestObject> testObjectBuilder = new ObjectBuilder<TestObject>() {
         @Override
         public TestObject newInstance() {
             return new TestObject();
         }
     };
     
-    Builder<TestObject> testObjectBuilderFromClass = Builder.createBuilder(TestObject.class);
+    ObjectBuilder<TestObject> testObjectBuilderFromClass = ObjectBuilder.createBuilder(TestObject.class);
 
     @Test
     public void testCreateBuilder() {

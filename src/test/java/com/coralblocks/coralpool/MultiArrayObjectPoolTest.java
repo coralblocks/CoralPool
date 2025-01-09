@@ -18,12 +18,10 @@ package com.coralblocks.coralpool;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.coralblocks.coralpool.util.Builder;
-
 public class MultiArrayObjectPoolTest {
 
     // A simple test builder that creates string objects with incrementing IDs
-    static class TestBuilder implements Builder<Object> {
+    static class TestBuilder implements ObjectBuilder<Object> {
         private int counter = 0;
         @Override
         public Object newInstance() {

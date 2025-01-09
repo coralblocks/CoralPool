@@ -15,8 +15,6 @@
  */
 package com.coralblocks.coralpool;
 
-import com.coralblocks.coralpool.util.Builder;
-
 /**
  * <p>An {@link ObjectPool} backed by an internal linked-list.
  * The pool can gradually grow by adding new nodes to the list.</p> 
@@ -32,17 +30,17 @@ import com.coralblocks.coralpool.util.Builder;
 public class LinkedObjectPool<E> implements ObjectPool<E> {
 	
 	private final LinkedObjectList<E> linkedList;
-	private final Builder<E> builder;
+	private final ObjectBuilder<E> builder;
 	
 	/**
 	 * Creates a new <code>LinkedObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
 	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
 	 * 
 	 * @param initialCapacity the initial capacity of the pool
-	 * @param klass the class used as the builder of the pool
+	 * @param klass the class used as the {@code ObjectBuilder} of the pool
 	 */
 	public LinkedObjectPool(int initialCapacity, Class<E> klass) {
-		this(initialCapacity, Builder.createBuilder(klass));
+		this(initialCapacity, ObjectBuilder.createBuilder(klass));
 	}	
 	
 	/**
@@ -50,9 +48,9 @@ public class LinkedObjectPool<E> implements ObjectPool<E> {
 	 * with new instances at startup, in other words, the <code>preloadCount</code> is assumed to the same as the <code>initialCapacity</code>.  
 	 * 
 	 * @param initialCapacity the initial capacity of the pool
-	 * @param builder the builder of the pool
+	 * @param builder the {@code ObjectBuilder} of the pool
 	 */
-	public LinkedObjectPool(int initialCapacity, Builder<E> builder) {
+	public LinkedObjectPool(int initialCapacity, ObjectBuilder<E> builder) {
 		this(initialCapacity, initialCapacity, builder);
 	}
 	
@@ -62,10 +60,10 @@ public class LinkedObjectPool<E> implements ObjectPool<E> {
 	 *   
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param preloadCount the number of instances to preallocate at startup
-	 * @param klass the class used as the builder of the pool
+	 * @param klass the class used as the {@code ObjectBuilder} of the pool
 	 */
 	public LinkedObjectPool(int initialCapacity, int preloadCount, Class<E> klass) {
-		this(initialCapacity, preloadCount, Builder.createBuilder(klass));
+		this(initialCapacity, preloadCount, ObjectBuilder.createBuilder(klass));
 	}
 	
 	/**
@@ -74,9 +72,9 @@ public class LinkedObjectPool<E> implements ObjectPool<E> {
 	 *   
 	 * @param initialCapacity the initial capacity of the pool
 	 * @param preloadCount the number of instances to preallocate at startup
-	 * @param builder the builder of the pool
+	 * @param builder the {@code ObjectBuilder} of the pool
 	 */
-	public LinkedObjectPool(int initialCapacity, int preloadCount, Builder<E> builder) {
+	public LinkedObjectPool(int initialCapacity, int preloadCount, ObjectBuilder<E> builder) {
 		check(initialCapacity, preloadCount);
 		this.builder = builder;
 		this.linkedList = new LinkedObjectList<E>(initialCapacity);

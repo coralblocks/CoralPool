@@ -17,9 +17,7 @@ package com.coralblocks.coralpool;
 
  import static org.junit.Assert.*;
 
-import org.junit.Test;
-
-import com.coralblocks.coralpool.util.Builder; 
+import org.junit.Test; 
 
  public class TieredObjectPoolTest { 
 
@@ -44,7 +42,7 @@ import com.coralblocks.coralpool.util.Builder;
 
  	@Test 
  	public void testConstructorWithBuilder_PreloadEqualsInitialCapacity() { 
- 		Builder<MyObject> builder = Builder.createBuilder(MyObject.class); 
+ 		ObjectBuilder<MyObject> builder = ObjectBuilder.createBuilder(MyObject.class); 
  		TieredObjectPool<MyObject> pool = new TieredObjectPool<>(5, builder); 
  		assertEquals(5, pool.getArrayLength()); 
  		for (int i = 0; i < 5; i++) { 
@@ -67,7 +65,7 @@ import com.coralblocks.coralpool.util.Builder;
 
  	@Test 
  	public void testConstructorWithBuilder_PartialPreload() { 
- 		Builder<MyObject> builder = Builder.createBuilder(MyObject.class); 
+ 		ObjectBuilder<MyObject> builder = ObjectBuilder.createBuilder(MyObject.class); 
  		TieredObjectPool<MyObject> pool = new TieredObjectPool<>(5, 3, builder); 
  		assertEquals(5, pool.getArrayLength()); 
  		assertNotNull(pool.getArrayElement(0)); 
