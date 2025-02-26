@@ -134,14 +134,10 @@
   </build>
 
   <repositories>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
-    <repository>
-        <id>github-coralbench</id>
-        <url>https://maven.pkg.github.com/coralblocks/CoralBench</url>
-    </repository>
+     <repository>
+       <id>jitpack.io</id>
+       <url>https://jitpack.io</url>
+     </repository>
   </repositories>
 
   <distributionManagement>
