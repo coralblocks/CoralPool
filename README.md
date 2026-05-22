@@ -3,7 +3,7 @@
 CoralPool is a high-performance, lightweight and garbage-free Java _object pool_ implementation. It efficiently reuses mutable objects, minimizing the creation of _short-lived_ objects that would otherwise burden the garbage collector. The pool can grow to accommodate more instances by internally allocating new objects via the `get()` method or by accepting external objects (not originally allocated by the pool) through the `release(E)` method.
 
 <pre>
-<b>Note:</b> For a discussion of developing garbage-free applications you should refer to <a href="https://youtu.be/bhzv6lJtuOs">this video</a>
+<b>Note:</b> For a discussion of developing garbage-free applications you should refer to <a href="https://youtu.be/bhzv6lJtuOs">this video</a>.
 </pre>
 
 ## ObjectPool Interface
