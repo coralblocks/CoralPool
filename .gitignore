@@ -2,3 +2,6 @@ target
 src/main/c/.vscode/
 release.properties
 pom.xml.releaseBackup
+.classpath
+.project
+.settings/
