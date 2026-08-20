@@ -48,7 +48,7 @@ public class ObjectPoolGrowthBench {
 				           " passes=" + passes +
 				           "\n");
 		
-		int totalTime = 0;
+		long totalTime = 0;
 		
 		for(int y = 0; y <= passes; y++) { // first pass (0) is warmup
 			
