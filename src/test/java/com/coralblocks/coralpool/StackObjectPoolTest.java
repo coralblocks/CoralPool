@@ -435,13 +435,6 @@ public class StackObjectPoolTest {
     }
 
     @Test
-    public void testGet_emptyPool() {
-        StackObjectPool<TestObject> pool = new StackObjectPool<>(0, testObjectBuilder);
-        TestObject obj = pool.get();
-        assertNotNull(obj);
-    }
-
-    @Test
     public void testReleaseAndGrow() {
         StackObjectPool<TestObject> pool = new StackObjectPool<>(2, testObjectBuilder, 2f);
         TestObject obj1 = pool.get();

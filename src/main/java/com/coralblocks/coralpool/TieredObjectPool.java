@@ -93,6 +93,12 @@ public class TieredObjectPool<E> implements ObjectPool<E> {
 	}
 	
 	private void check(int initialCapacity, int preloadCount) {
+		if (initialCapacity < 1) {
+			throw new IllegalArgumentException("initialCapacity (" + initialCapacity + ") must be greater than zero");
+		}
+		if (preloadCount < 0) {
+			throw new IllegalArgumentException("preloadCount (" + preloadCount + ") cannot be negative");
+		}
 		if (preloadCount > initialCapacity) {
 			throw new IllegalArgumentException("preloadCount (" + preloadCount + ") cannot be bigger than initialCapacity (" + initialCapacity + ")");
 		}
