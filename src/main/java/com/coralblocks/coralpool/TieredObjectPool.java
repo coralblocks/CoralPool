@@ -30,9 +30,10 @@ package com.coralblocks.coralpool;
 public final class TieredObjectPool<E> implements ObjectPool<E> {
 	
 	/**
-	 * The initial size of the linked-list used for the expansion of the pool (second tier) as a factor of the initial capacity of the pool
+	 * The default initial size of the linked-list used for second-tier expansion,
+	 * expressed as a factor of the pool's initial capacity
 	 */
-	public static int LINKED_LIST_CAPACITY_FACTOR = 3;
+	public static final int LINKED_LIST_CAPACITY_FACTOR = 3;
 	
 	private final E[] array;
 	private int pointer = 0;
@@ -72,6 +73,18 @@ public final class TieredObjectPool<E> implements ObjectPool<E> {
 	public TieredObjectPool(int initialCapacity, int preloadCount, Class<E> klass) {
 		this(initialCapacity, preloadCount, ObjectBuilder.createBuilder(klass));
 	}
+
+	/**
+	 * Creates a new <code>TieredObjectPool</code> with explicit capacities for both tiers.
+	 *
+	 * @param initialCapacity the initial capacity of the array tier
+	 * @param preloadCount the number of instances to preallocate at startup
+	 * @param klass the class used as the {@code ObjectBuilder} of the pool
+	 * @param linkedListInitialCapacity the number of linked-list entries to preallocate for second-tier growth; zero preallocates none
+	 */
+	public TieredObjectPool(int initialCapacity, int preloadCount, Class<E> klass, int linkedListInitialCapacity) {
+		this(initialCapacity, preloadCount, ObjectBuilder.createBuilder(klass), linkedListInitialCapacity);
+	}
 	
 	/**
 	 * Creates a new <code>TieredObjectPool</code> with the given initial capacity. The pool will be populated with the given preload count,
@@ -81,18 +94,42 @@ public final class TieredObjectPool<E> implements ObjectPool<E> {
 	 * @param preloadCount the number of instances to preallocate at startup
 	 * @param builder the {@code ObjectBuilder} of the pool
 	 */
-	@SuppressWarnings("unchecked")
 	public TieredObjectPool(int initialCapacity, int preloadCount, ObjectBuilder<E> builder) {
-		check(initialCapacity, preloadCount);
+		this(initialCapacity, preloadCount, builder, calculateDefaultLinkedListCapacity(initialCapacity, preloadCount));
+	}
+
+	/**
+	 * Creates a new <code>TieredObjectPool</code> with explicit capacities for both tiers.
+	 *
+	 * @param initialCapacity the initial capacity of the array tier
+	 * @param preloadCount the number of instances to preallocate at startup
+	 * @param builder the {@code ObjectBuilder} of the pool
+	 * @param linkedListInitialCapacity the number of linked-list entries to preallocate for second-tier growth; zero preallocates none
+	 */
+	@SuppressWarnings("unchecked")
+	public TieredObjectPool(int initialCapacity, int preloadCount, ObjectBuilder<E> builder, int linkedListInitialCapacity) {
+		check(initialCapacity, preloadCount, linkedListInitialCapacity);
 		this.array = (E[]) new Object[initialCapacity];
 		for(int i = 0; i < preloadCount; i++) {
 			this.array[i] = builder.newInstance();
 		}
 		this.builder = builder;
-		this.linkedList = new LinkedObjectList<E>(initialCapacity * LINKED_LIST_CAPACITY_FACTOR);
+		this.linkedList = new LinkedObjectList<E>(linkedListInitialCapacity);
 	}
 	
-	private void check(int initialCapacity, int preloadCount) {
+	static int calculateDefaultLinkedListCapacity(int initialCapacity, int preloadCount) {
+		// Preserve constructor validation order before calculating the derived capacity.
+		check(initialCapacity, preloadCount, 0);
+
+		long linkedListInitialCapacity = (long) initialCapacity * LINKED_LIST_CAPACITY_FACTOR;
+		if (linkedListInitialCapacity > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("initialCapacity (" + initialCapacity
+					+ ") is too large to calculate the default linked-list capacity");
+		}
+		return (int) linkedListInitialCapacity;
+	}
+
+	private static void check(int initialCapacity, int preloadCount, int linkedListInitialCapacity) {
 		if (initialCapacity < 1) {
 			throw new IllegalArgumentException("initialCapacity (" + initialCapacity + ") must be greater than zero");
 		}
@@ -101,6 +138,9 @@ public final class TieredObjectPool<E> implements ObjectPool<E> {
 		}
 		if (preloadCount > initialCapacity) {
 			throw new IllegalArgumentException("preloadCount (" + preloadCount + ") cannot be bigger than initialCapacity (" + initialCapacity + ")");
+		}
+		if (linkedListInitialCapacity < 0) {
+			throw new IllegalArgumentException("linkedListInitialCapacity (" + linkedListInitialCapacity + ") cannot be negative");
 		}
 	}
 	
