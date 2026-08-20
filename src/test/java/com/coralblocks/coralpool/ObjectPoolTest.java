@@ -194,11 +194,14 @@ public class ObjectPoolTest {
         
     @Test
     public void testArrayObjectPoolReleasingWhenEmpty() {
-        
-        // If we release when empty (pointer=0), it should not fail:
-    	ObjectPool<StringBuilder> pool = new ArrayObjectPool<StringBuilder>(5, 0, ObjectBuilder.createBuilder(StringBuilder.class));
-        // pointer=0, release something not from pool:
-        pool.release(new StringBuilder()); // should not fail, just ignore
+        // An external release must use the existing empty allocation and remain retrievable.
+        ArrayObjectPool<StringBuilder> pool = new ArrayObjectPool<StringBuilder>(5, 0, ObjectBuilder.createBuilder(StringBuilder.class));
+        StringBuilder external = new StringBuilder();
+
+        pool.release(external);
+
+        assertEquals(5, pool.getArrayLength());
+        assertSame(external, pool.get());
     }
 
     @Test

@@ -151,8 +151,34 @@ public class MultiArrayObjectPoolTest {
     }
 
     @Test
-    public void testGrowToLeftTraversesGeometricArraySizes() {
+    public void testReleaseUsesNeverPopulatedSlotsBeforeGrowingLeft() {
+        // No preload leaves the complete initial holder available for net releases.
         MultiArrayObjectPool<Object> pool = new MultiArrayObjectPool<>(2, 0, new TestBuilder());
+        MultiArrayObjectPool.ArrayHolder<Object> initialHolder = pool.getArrayHolder();
+        Object first = new Object();
+        Object second = new Object();
+        Object third = new Object();
+
+        // The first two objects must use untouched slots without allocating a holder.
+        pool.release(first);
+        pool.release(second);
+        Assert.assertSame(initialHolder, pool.getArrayHolder());
+
+        // The third object requires growth, and all three identities must remain pooled.
+        pool.release(third);
+        Assert.assertNotSame(initialHolder, pool.getArrayHolder());
+        Assert.assertEquals(4, pool.getArrayHolder().array.length);
+        Assert.assertSame(third, pool.get());
+
+        Object next = pool.get();
+        Object last = pool.get();
+        Assert.assertTrue((next == first && last == second) || (next == second && last == first));
+    }
+
+    @Test
+    public void testGrowToLeftTraversesGeometricArraySizes() {
+        // A full preload isolates geometric left growth from untouched-tail reuse.
+        MultiArrayObjectPool<Object> pool = new MultiArrayObjectPool<>(2, new TestBuilder());
         Object[] released = new Object[5];
 
         for (int i = 0; i < released.length; i++) {

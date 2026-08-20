@@ -35,10 +35,21 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		
 		ArrayHolder<E> prev;
 		final E[] array;
+		/*
+		 * Each holder has its own used-region watermark: the tail from high to
+		 * the end has never been populated. When pointer is zero, a net external
+		 * release can use that tail before we add a left node. This keeps the
+		 * populated-slot hot path unchanged and avoids an unnecessary array and
+		 * holder allocation. The appended object follows the already-available
+		 * objects; ObjectPool intentionally makes no object-return-order guarantee.
+		 */
+		int high;
 		ArrayHolder<E> next;
 		
-		ArrayHolder(final E[] array) {
+		ArrayHolder(final E[] array, int high) {
 			this.array = array;
+			// The holder owns its watermark because holders can be populated independently.
+			this.high = high;
 		}
 	}
 	
@@ -92,7 +103,8 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		check(initialCapacity, preloadCount);
 		this.builder = builder;
 		E[] array = allocateArray(initialCapacity, preloadCount);
-		this.arrayHolder = new ArrayHolder<E>(array);
+		// Only the preloaded prefix has participated in the initial holder.
+		this.arrayHolder = new ArrayHolder<E>(array, preloadCount);
 	}
 	
 	private final E[] allocateArray(int arrayLength, int preloadCount) {
@@ -131,12 +143,14 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		
 		if (trueForRightFalseForLeft) {
 			E[] newArray = allocateArray(newArrayLength); // all nulls
-			newArrayHolder = new ArrayHolder<E>(newArray);
+			// A right holder starts entirely untouched and is populated forward by get().
+			newArrayHolder = new ArrayHolder<E>(newArray, 0);
 			newArrayHolder.prev = this.arrayHolder;
 			this.arrayHolder.next = newArrayHolder;
 		} else {
 			E[] newArray = allocateArray(newArrayLength); // all nulls
-			newArrayHolder = new ArrayHolder<E>(newArray);
+			// A left holder fills backward, so none of its right tail is appendable.
+			newArrayHolder = new ArrayHolder<E>(newArray, newArrayLength);
 			newArrayHolder.next = this.arrayHolder;
 			this.arrayHolder.prev = newArrayHolder;
 		}
@@ -161,6 +175,8 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		E toReturn = this.arrayHolder.array[pointer];
 		if (toReturn == null) {
 			toReturn = buildObject();
+			// Lazy creation advances only the active holder's used-region watermark.
+			if (pointer == arrayHolder.high) arrayHolder.high++;
 		} else {
 			this.arrayHolder.array[pointer] = null;
 		}
@@ -182,6 +198,12 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		ensureNotNull(object);
 		
 		if (pointer == 0) {
+			// A net release can occupy this holder's untouched tail before adding a node.
+			if (arrayHolder.high < arrayHolder.array.length) {
+				arrayHolder.array[arrayHolder.high++] = object;
+				// The cursor stays at zero so existing available objects are returned first.
+				return;
+			}
 			
 			if (arrayHolder.prev != null) {
 				arrayHolder = arrayHolder.prev;
