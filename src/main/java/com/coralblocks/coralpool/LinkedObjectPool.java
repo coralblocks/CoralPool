@@ -103,9 +103,15 @@ public class LinkedObjectPool<E> implements ObjectPool<E> {
 	public E get() {
 		E toReturn = linkedList.removeLast();
 		if (toReturn == null) {
-			return builder.newInstance();
+			return buildObject();
 		}
 		return toReturn;
+	}
+
+	private final E buildObject() {
+		E object = builder.newInstance();
+		if (object == null) throw new IllegalStateException("ObjectBuilder returned null");
+		return object;
 	}
 
 	@Override

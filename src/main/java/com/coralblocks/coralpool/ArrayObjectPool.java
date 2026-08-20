@@ -211,12 +211,18 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		
 		E toReturn = this.array[pointer];
 		if (toReturn == null) {
-			toReturn = builder.newInstance();
+			toReturn = buildObject();
 		} else {
 			this.array[pointer] = null;
 		}
 		pointer++;
 		return toReturn;
+	}
+
+	private final E buildObject() {
+		E object = builder.newInstance();
+		if (object == null) throw new IllegalStateException("ObjectBuilder returned null");
+		return object;
 	}
 	
 	@Override

@@ -161,7 +161,7 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 			
 		E toReturn = this.arrayHolder.array[pointer];
 		if (toReturn == null) {
-			toReturn = builder.newInstance();
+			toReturn = buildObject();
 		} else {
 			this.arrayHolder.array[pointer] = null;
 		}
@@ -169,6 +169,12 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		pointer++;
 
 		return toReturn;
+	}
+
+	private final E buildObject() {
+		E object = builder.newInstance();
+		if (object == null) throw new IllegalStateException("ObjectBuilder returned null");
+		return object;
 	}
 	
 	@Override

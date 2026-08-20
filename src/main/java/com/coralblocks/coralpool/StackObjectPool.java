@@ -207,17 +207,23 @@ public class StackObjectPool<E> implements ObjectPool<E> {
 	public final E get() {
 		
 		if (pointer == 0) {
-			return builder.newInstance();
+			return buildObject();
 		}
 		
 		E toReturn = this.array[--pointer];
 		if (toReturn != null) {
 			this.array[pointer] = null;
 		} else {
-			toReturn = builder.newInstance();
+			toReturn = buildObject();
 		}
 		
 		return toReturn;
+	}
+
+	private final E buildObject() {
+		E object = builder.newInstance();
+		if (object == null) throw new IllegalStateException("ObjectBuilder returned null");
+		return object;
 	}
 	
 	@Override

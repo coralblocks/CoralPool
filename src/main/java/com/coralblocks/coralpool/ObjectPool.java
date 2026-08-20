@@ -35,6 +35,7 @@ public interface ObjectPool<E> {
 	 * accommodate more instances. This method can never return <code>null</code>.
 	 * 
 	 * @return an instance from the pool
+	 * @throws IllegalStateException if the {@link ObjectBuilder} returns <code>null</code>
 	 */
 	public E get();
 

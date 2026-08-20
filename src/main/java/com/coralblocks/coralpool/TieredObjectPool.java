@@ -122,17 +122,23 @@ public class TieredObjectPool<E> implements ObjectPool<E> {
 		if (!linkedList.isEmpty()) { // always return from the list first
 			return linkedList.removeLast();
 		} else if (pointer == array.length) { // array also has nothing
-			return builder.newInstance();
+			return buildObject();
 		}
 		
 		E toReturn = this.array[pointer];
 		if (toReturn == null) {
-			toReturn = builder.newInstance(); // might need to populate due to preloadCount < initialCapacity
+			toReturn = buildObject(); // might need to populate due to preloadCount < initialCapacity
 		} else {
 			this.array[pointer] = null; // nullify on disposal (always)
 		}
 		pointer++;
 		return toReturn;
+	}
+
+	private final E buildObject() {
+		E object = builder.newInstance();
+		if (object == null) throw new IllegalStateException("ObjectBuilder returned null");
+		return object;
 	}
 	
 	@Override
