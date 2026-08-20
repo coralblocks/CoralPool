@@ -101,6 +101,24 @@ public class MultiArrayObjectPoolTest {
     }
 
     @Test
+    public void testGrowToRightCreatesObjectsLazily() {
+        int initialCapacity = 4;
+        TestBuilder builder = new TestBuilder();
+        MultiArrayObjectPool<Object> pool = new MultiArrayObjectPool<>(initialCapacity, initialCapacity, builder);
+
+        Assert.assertEquals(initialCapacity, builder.counter);
+        for (int i = 0; i < initialCapacity; i++) {
+            pool.get();
+        }
+
+        pool.get();
+        Assert.assertEquals(initialCapacity + 1, builder.counter);
+
+        pool.get();
+        Assert.assertEquals(initialCapacity + 2, builder.counter);
+    }
+
+    @Test
     public void testGrowToLeft() {
         int initialCapacity = 2;
         int preloadCount = 0; // start with empty arrays for simplicity

@@ -43,7 +43,6 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	private ArrayHolder<E> arrayHolder;
 	private int pointer = 0;
 	private final ObjectBuilder<E> builder;
-	private final int preloadCount;
 	private final int arrayLength;
 	
 	/**
@@ -91,7 +90,6 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	public MultiArrayObjectPool(int initialCapacity, int preloadCount, ObjectBuilder<E> builder) {
 		check(initialCapacity, preloadCount);
 		this.arrayLength = initialCapacity;
-		this.preloadCount = preloadCount;
 		this.builder = builder;
 		E[] array = allocateArray(arrayLength, preloadCount);
 		this.arrayHolder = new ArrayHolder<E>(array);
@@ -131,7 +129,7 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 		ArrayHolder<E> newArrayHolder;
 		
 		if (trueForRightFalseForLeft) {
-			E[] newArray = allocateArray(arrayLength, preloadCount);
+			E[] newArray = allocateArray(arrayLength); // all nulls
 			newArrayHolder = new ArrayHolder<E>(newArray);
 			newArrayHolder.prev = this.arrayHolder;
 			this.arrayHolder.next = newArrayHolder;
