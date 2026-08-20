@@ -111,6 +111,9 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	}
 	
 	private final void check(int initialCapacity, int preloadCount) {
+		if (initialCapacity < 1) {
+			throw new IllegalArgumentException("initialCapacity (" + initialCapacity + ") must be greater than zero");
+		}
 		if (preloadCount > initialCapacity) {
 			throw new IllegalArgumentException("preloadCount (" + preloadCount + ") cannot be bigger than initialCapacity (" + initialCapacity + ")");
 		}

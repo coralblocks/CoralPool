@@ -160,4 +160,9 @@ public class MultiArrayObjectPoolTest {
         // preloadCount > initialCapacity should throw
         new MultiArrayObjectPool<>(5, 6, new TestBuilder());
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testZeroInitialCapacity() {
+        new MultiArrayObjectPool<>(0, 0, new TestBuilder());
+    }
 }
