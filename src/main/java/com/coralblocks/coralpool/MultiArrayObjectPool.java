@@ -139,7 +139,11 @@ public final class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	private final ArrayHolder<E> grow(boolean trueForRightFalseForLeft) {
 		
 		ArrayHolder<E> newArrayHolder;
-		int newArrayLength = arrayHolder.array.length * GROWTH_FACTOR;
+		int currentArrayLength = arrayHolder.array.length;
+		// Equal-sized capped segments can still increase total pool capacity.
+		int newArrayLength = currentArrayLength >= ArraySizing.MAX_ARRAY_LENGTH
+				? currentArrayLength
+				: ArraySizing.calculateNewLength(currentArrayLength, GROWTH_FACTOR);
 		
 		if (trueForRightFalseForLeft) {
 			E[] newArray = allocateArray(newArrayLength); // all nulls

@@ -165,11 +165,14 @@ public final class ArrayObjectPool<E> implements ObjectPool<E> {
 		if (preloadCount > initialCapacity) {
 			throw new IllegalArgumentException("preloadCount (" + preloadCount + ") cannot be bigger than initialCapacity (" + initialCapacity + ")");
 		}
+		if (!Float.isFinite(growthFactor)) {
+			throw new IllegalArgumentException("growthFactor (" + growthFactor + ") must be finite");
+		}
 		if (growthFactor <= 1) {
 			throw new IllegalArgumentException("growthFactor (" + growthFactor + ") must be bigger than one");
 		}
 	}
-	
+
 	int getArrayLength() {
 		return this.array.length;
 	}
@@ -199,8 +202,7 @@ public final class ArrayObjectPool<E> implements ObjectPool<E> {
 	
 	private final int grow(boolean growRight) {
 
-		int newLength = (int) (growthFactor * array.length); // casting faster than rounding
-		if (newLength == array.length) newLength++;
+		int newLength = ArraySizing.calculateNewLength(array.length, growthFactor);
 
 		@SuppressWarnings("unchecked")
 		E[] newArray = (E[]) new Object[newLength];
