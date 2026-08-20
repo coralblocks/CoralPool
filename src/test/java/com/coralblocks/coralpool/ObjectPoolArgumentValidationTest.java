@@ -66,6 +66,17 @@ public class ObjectPoolArgumentValidationTest {
         assertInvalidArguments(1, -1, "preloadCount (-1) cannot be negative");
     }
 
+    @Test
+    public void rejectsNullRelease() {
+        ObjectPool<Object> pool = poolFactory.create(1, 0);
+        try {
+            pool.release(null);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Cannot release null!", e.getMessage());
+        }
+    }
+
     private void assertInvalidArguments(int initialCapacity, int preloadCount, String expectedMessage) {
         try {
             poolFactory.create(initialCapacity, preloadCount);

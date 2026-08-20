@@ -30,10 +30,11 @@ public class ArrayObjectPoolReleaseTest {
     }
 
     @Test
-    public void testThrowAwayTrash() {
+    public void testDiscardGarbageAfterGrowLeft() {
         ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(1, 1, new IntegerBuilder());
         pool.release(99);
 
+        assertEquals(2, pool.getArrayLength());
         assertEquals(1, pool.discardGarbage());
         assertEquals(0, pool.discardGarbage());
     }
@@ -95,7 +96,7 @@ public class ArrayObjectPoolReleaseTest {
         // Releasing a new object should force growth
         Integer o3 = 999;
         pool.release(o3); 
-        // This should trigger grow(true).
+        // This should trigger grow(false).
 
         // After grow:
         // The old length was 2, new length should be 4

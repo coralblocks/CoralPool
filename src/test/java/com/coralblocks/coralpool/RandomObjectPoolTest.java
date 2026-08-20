@@ -23,6 +23,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class RandomObjectPoolTest {
+
+	private static final long LARGE_RANDOM_SEED = 0xC0A1_5001L;
 	
 	private static enum Type { MULTI_ARRAY, ARRAY, LINKED, STACK, TIERED };
 
@@ -57,7 +59,7 @@ public class RandomObjectPoolTest {
 
     @Test
     public void testRandomOperationsLarge() {
-        testRandomOperations(10000, System.currentTimeMillis());
+        testRandomOperations(10000, LARGE_RANDOM_SEED);
     }
 
     /**

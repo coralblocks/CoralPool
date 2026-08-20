@@ -47,25 +47,27 @@ public class StackObjectPoolTest {
     
     @Test
     public void testGetAndRelease() {
+        StackObjectPool<Object> identityPool = new StackObjectPool<>(INITIAL_CAPACITY, PRELOAD_COUNT, Object::new, GROWTH_FACTOR);
+
         // First get the preloaded objects
-        String obj1 = pool.get();
-        String obj2 = pool.get();
+        Object obj1 = identityPool.get();
+        Object obj2 = identityPool.get();
         assertNotNull(obj1);
         assertNotNull(obj2);
         
         // Now pool is empty, next get will create new instance
-        String obj3 = pool.get();
+        Object obj3 = identityPool.get();
         assertNotNull(obj3);
         
         // Release objects back
-        pool.release(obj3);
-        pool.release(obj2);
-        pool.release(obj1);
+        identityPool.release(obj3);
+        identityPool.release(obj2);
+        identityPool.release(obj1);
         
         // Verify objects are back in pool in correct order
-        assertEquals(obj1, pool.get());
-        assertEquals(obj2, pool.get());
-        assertEquals(obj3, pool.get());
+        assertSame(obj1, identityPool.get());
+        assertSame(obj2, identityPool.get());
+        assertSame(obj3, identityPool.get());
     }
     
     @Test
