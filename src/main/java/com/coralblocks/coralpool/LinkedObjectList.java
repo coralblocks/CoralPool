@@ -16,6 +16,7 @@
 package com.coralblocks.coralpool;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * A fast and garbage-free double-linked list.
@@ -213,6 +214,7 @@ class LinkedObjectList<E> implements Iterable<E> {
 
 		@Override
 		public final E next() {
+			if (start == null) throw new NoSuchElementException();
 
 			this.curr = start;
 			
@@ -225,6 +227,7 @@ class LinkedObjectList<E> implements Iterable<E> {
 
 		@Override
 		public final void remove() {
+			if (curr == null) throw new IllegalStateException();
 			
 			boolean isTail = curr == tail;
 			boolean isHead = curr == head;
