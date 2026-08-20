@@ -16,7 +16,6 @@
 package com.coralblocks.coralpool;
 
 import java.lang.ref.SoftReference;
-import java.util.Arrays;
 
 /**
  * <p>An {@link ObjectPool} backed by an internal array.
@@ -200,7 +199,9 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		if (!growRight) {
 			offset = newArray.length - this.array.length; // shift to the the very end
 			System.arraycopy(this.array, 0, newArray, offset, this.array.length);
-			Arrays.fill(this.array, null);
+			// Under normal pool usage, checked-out objects remain in use or are returned.
+			// Leave the old array uncleared to avoid a second O(n) pass => DO NOT NULLIFY THE ARRAY
+			// abandoned checkouts may remain reachable until soft clearing or discardGarbage().
 		} else {
 			// No need to perform any copying here as the previous array will have only nulls!
 		}

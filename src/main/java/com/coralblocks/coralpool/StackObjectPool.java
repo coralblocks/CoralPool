@@ -16,7 +16,6 @@
 package com.coralblocks.coralpool;
 
 import java.lang.ref.SoftReference;
-import java.util.Arrays;
 
 /**
  * <p>An {@link ObjectPool} backed by an internal stack (implemented with an array).
@@ -196,22 +195,24 @@ public class StackObjectPool<E> implements ObjectPool<E> {
 		}
 	}
 	
-    @SuppressWarnings("unchecked")
-    private void grow() {
-    	
+	@SuppressWarnings("unchecked")
+	private void grow() {
+
 		int newLength = (int) (growthFactor * array.length); // casting faster than rounding
-		
+
 		if (newLength == array.length) newLength++;
-		
-    	E[] newArray = (E[]) new Object[newLength];
-    	
-        System.arraycopy(array, 0, newArray, 0, array.length);
-        Arrays.fill(array, null);
-        
-        retainDiscardedArray(this.array);
-        
-        this.array = newArray;
-    }
+
+		E[] newArray = (E[]) new Object[newLength];
+
+		System.arraycopy(array, 0, newArray, 0, array.length);
+		// Under normal pool usage, checked-out objects remain in use or are returned.
+		// Leave the old array uncleared to avoid a second O(n) pass => DO NOT NULLIFY THE ARRAY
+		// abandoned checkouts may remain reachable until soft clearing or discardGarbage().
+
+		retainDiscardedArray(this.array);
+
+		this.array = newArray;
+	}
 	
 	@Override
 	public final E get() {
