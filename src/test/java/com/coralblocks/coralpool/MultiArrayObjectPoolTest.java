@@ -91,8 +91,8 @@ public class MultiArrayObjectPoolTest {
 
         // Now we're out of preloaded objects and at the boundary.
         // The next get should trigger growth to the right if we need more space.
-        // pointer == (arrays.index + 1)*arrayLength means pointer=2, arrays.index=0, arrayLength=2
-        // next get should cause grow(true) since arrays.next is null.
+        // pointer equals the current array length, so the next get should cause
+        // grow(true) since arrayHolder.next is null.
         Object o3 = pool.get();
         Assert.assertNotNull(o3);
 
@@ -119,6 +119,22 @@ public class MultiArrayObjectPoolTest {
     }
 
     @Test
+    public void testGrowToRightUsesGeometricArraySizes() {
+        MultiArrayObjectPool<Object> pool = new MultiArrayObjectPool<>(2, 0, new TestBuilder());
+
+        Assert.assertEquals(2, pool.getArrayHolder().array.length);
+        for (int i = 0; i < 3; i++) {
+            pool.get();
+        }
+        Assert.assertEquals(4, pool.getArrayHolder().array.length);
+
+        for (int i = 0; i < 4; i++) {
+            pool.get();
+        }
+        Assert.assertEquals(8, pool.getArrayHolder().array.length);
+    }
+
+    @Test
     public void testGrowToLeft() {
         int initialCapacity = 2;
         int preloadCount = 0; // start with empty arrays for simplicity
@@ -132,6 +148,22 @@ public class MultiArrayObjectPoolTest {
         // Now get the object back
         Object retrieved = pool.get();
         Assert.assertSame("We should get back the same object we just released", testObj, retrieved);
+    }
+
+    @Test
+    public void testGrowToLeftTraversesGeometricArraySizes() {
+        MultiArrayObjectPool<Object> pool = new MultiArrayObjectPool<>(2, 0, new TestBuilder());
+        Object[] released = new Object[5];
+
+        for (int i = 0; i < released.length; i++) {
+            released[i] = "Released-" + i;
+            pool.release(released[i]);
+        }
+        Assert.assertEquals(8, pool.getArrayHolder().array.length);
+
+        for (int i = released.length - 1; i >= 0; i--) {
+            Assert.assertSame(released[i], pool.get());
+        }
     }
 
     @Test

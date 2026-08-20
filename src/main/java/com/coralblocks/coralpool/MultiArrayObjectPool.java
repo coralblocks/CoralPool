@@ -17,7 +17,7 @@ package com.coralblocks.coralpool;
 
 /**
  * <p>An {@link ObjectPool} backed by an internal doubly linked-list of arrays.
- * The pool can grow by adding a new node (with a new allocated array) to the linked-list.</p>
+ * The pool grows without copying existing elements by adding arrays whose lengths double geometrically.</p>
  * 
  * <p><b>NOTE:</b> This {@link ObjectPool} is intentionally designed for <b>single-threaded systems</b>. 
  * It is <i>not</i> thread-safe and will fail if accessed concurrently by multiple threads. 
@@ -28,6 +28,8 @@ package com.coralblocks.coralpool;
  * @param <E> the type of objects managed by this object pool
  */
 public class MultiArrayObjectPool<E> implements ObjectPool<E> {
+
+	private static final int GROWTH_FACTOR = 2;
 	
 	static class ArrayHolder<E> {
 		
@@ -43,7 +45,6 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	private ArrayHolder<E> arrayHolder;
 	private int pointer = 0;
 	private final ObjectBuilder<E> builder;
-	private final int arrayLength;
 	
 	/**
 	 * Creates a new <code>MultiArrayObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
@@ -89,9 +90,8 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	 */
 	public MultiArrayObjectPool(int initialCapacity, int preloadCount, ObjectBuilder<E> builder) {
 		check(initialCapacity, preloadCount);
-		this.arrayLength = initialCapacity;
 		this.builder = builder;
-		E[] array = allocateArray(arrayLength, preloadCount);
+		E[] array = allocateArray(initialCapacity, preloadCount);
 		this.arrayHolder = new ArrayHolder<E>(array);
 	}
 	
@@ -127,14 +127,15 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	private final ArrayHolder<E> grow(boolean trueForRightFalseForLeft) {
 		
 		ArrayHolder<E> newArrayHolder;
+		int newArrayLength = arrayHolder.array.length * GROWTH_FACTOR;
 		
 		if (trueForRightFalseForLeft) {
-			E[] newArray = allocateArray(arrayLength); // all nulls
+			E[] newArray = allocateArray(newArrayLength); // all nulls
 			newArrayHolder = new ArrayHolder<E>(newArray);
 			newArrayHolder.prev = this.arrayHolder;
 			this.arrayHolder.next = newArrayHolder;
 		} else {
-			E[] newArray = allocateArray(arrayLength); // all nulls
+			E[] newArray = allocateArray(newArrayLength); // all nulls
 			newArrayHolder = new ArrayHolder<E>(newArray);
 			newArrayHolder.next = this.arrayHolder;
 			this.arrayHolder.prev = newArrayHolder;
@@ -146,7 +147,7 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 	@Override
 	public final E get() {
 		
-		if (pointer == arrayLength) {
+		if (pointer == arrayHolder.array.length) {
 			
 			if (arrayHolder.next != null) {
 				arrayHolder = arrayHolder.next;
@@ -188,7 +189,7 @@ public class MultiArrayObjectPool<E> implements ObjectPool<E> {
 				arrayHolder = grow(false);
 			}
 			
-			pointer = arrayLength;
+			pointer = arrayHolder.array.length;
 		} 
 		
 		this.arrayHolder.array[--pointer] = object;
