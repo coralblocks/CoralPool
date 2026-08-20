@@ -30,6 +30,15 @@ public class ArrayObjectPoolReleaseTest {
     }
 
     @Test
+    public void testThrowAwayTrash() {
+        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(1, 1, new IntegerBuilder());
+        pool.release(99);
+
+        assertEquals(1, pool.discardGarbage());
+        assertEquals(0, pool.discardGarbage());
+    }
+
+    @Test
     public void testReleaseWithoutGrow() {
         // Initial capacity: 5, preload: 3 (so indices [0,1,2] have preloaded objects)
         ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(5, 3, new IntegerBuilder());

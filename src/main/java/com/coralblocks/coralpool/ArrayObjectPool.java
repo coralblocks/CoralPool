@@ -40,13 +40,15 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	/*
 	 * Our LinkedObjectList does not produce any garbage, not even when it grows
 	 */
-	private final static int SOFT_REFERENCE_LINKED_LIST_INITIAL_SIZE = 32;
+	private static final int TRASH_LINKED_LIST_INITIAL_SIZE = 32;
+	
+	private static final RetentionPolicy RETENTION_POLICY = RetentionPolicy.SOFT;
 	
 	private E[] array;
 	private int pointer = 0;
 	private final ObjectBuilder<E> builder;
 	private final float growthFactor;
-	private final LinkedObjectList<SoftReference<E[]>> oldArrays = new LinkedObjectList<SoftReference<E[]>>(SOFT_REFERENCE_LINKED_LIST_INITIAL_SIZE);
+	private final LinkedObjectList<Object> trashBin = new LinkedObjectList<Object>(TRASH_LINKED_LIST_INITIAL_SIZE);
 	
 	/**
 	 * Creates a new <code>ArrayObjectPool</code> with the given initial capacity. The entire pool (its entire initial capacity) will be populated 
@@ -167,14 +169,22 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 	}
 	
 	/**
-	 * If the pool is holding on to references (to delay GC) through {@link java.lang.ref.SoftReference}s release them now to the GC.
+	 * Discards any backing arrays retained according to the internal {@link RetentionPolicy}.
 	 * 
-	 * @return the number of soft references released
+	 * @return the number of retained references discarded
 	 */
-	public final int releaseSoftReferences() {
-		int toReturn = oldArrays.size();
-		oldArrays.clear();
+	public final int discardGarbage() {
+		int toReturn = trashBin.size();
+		trashBin.clear();
 		return toReturn;
+	}
+
+	private final void retainDiscardedArray(E[] discardedArray) {
+		if (RETENTION_POLICY == RetentionPolicy.SOFT) {
+			trashBin.addLast(new SoftReference<E[]>(discardedArray));
+		} else if (RETENTION_POLICY == RetentionPolicy.STRONG) {
+			trashBin.addLast(discardedArray);
+		}
 	}
 	
 	private final int grow(boolean growRight) {
@@ -195,7 +205,7 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 			// No need to perform any copying here as the previous array will have only nulls!
 		}
 
-		oldArrays.addLast(new SoftReference<E[]>(this.array)); // delay gc
+		retainDiscardedArray(this.array);
 
 		this.array = newArray;
 		

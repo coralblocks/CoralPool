@@ -154,7 +154,7 @@ public class StackObjectPoolTest {
     }
     
     @Test
-    public void testReleaseSoftReferences() {
+    public void testThrowAwayTrash() {
         // First get all preloaded objects
         for (int i = 0; i < PRELOAD_COUNT; i++) {
             pool.get();
@@ -165,7 +165,7 @@ public class StackObjectPoolTest {
             pool.release("Test" + i);
         }
         
-        int releaseCount = pool.releaseSoftReferences();
+        int releaseCount = pool.discardGarbage();
         assertEquals(3, releaseCount);
         
         // Verify pool still functions correctly
@@ -468,7 +468,7 @@ public class StackObjectPoolTest {
     }
     
     @Test
-    public void testReleaseSoftReferences2() {
+    public void testThrowAwayTrashAfterRepeatedGrowth() {
         StackObjectPool<TestObject> pool = new StackObjectPool<>(1, testObjectBuilder, 2f);
         TestObject obj1 = pool.get();
         pool.release(obj1);
@@ -478,8 +478,8 @@ public class StackObjectPoolTest {
         pool.release(new TestObject());
         
         assertEquals(4, pool.getArrayLength());
-        assertEquals(2, pool.releaseSoftReferences());
-        assertEquals(0, pool.releaseSoftReferences());
+        assertEquals(2, pool.discardGarbage());
+        assertEquals(0, pool.discardGarbage());
     }
     
     @Test

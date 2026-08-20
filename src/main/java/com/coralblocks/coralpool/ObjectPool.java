@@ -30,6 +30,21 @@ package com.coralblocks.coralpool;
 public interface ObjectPool<E> {
 
 	/**
+	 * Defines how discarded internal storage is retained before it becomes eligible for garbage collection.
+	 */
+	public static enum RetentionPolicy {
+
+		/** Retain discarded storage through a strong reference. */
+		STRONG,
+
+		/** Retain discarded storage through a soft reference. */
+		SOFT,
+
+		/** Do not retain discarded storage. */
+		NONE
+	}
+
+	/**
 	 * Retrieves an instance from this object pool. If no instances are currently available,
 	 * a new instance will be created, and the pool will grow in size if necessary to 
 	 * accommodate more instances. This method can never return <code>null</code>.
