@@ -27,7 +27,7 @@ package com.coralblocks.coralpool;
  * 
  * @param <E> the type of objects managed by this object pool
  */
-public class MultiArrayObjectPool<E> implements ObjectPool<E> {
+public final class MultiArrayObjectPool<E> implements ObjectPool<E> {
 
 	private static final int GROWTH_FACTOR = 2;
 	

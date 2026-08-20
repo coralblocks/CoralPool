@@ -27,7 +27,7 @@ package com.coralblocks.coralpool;
  *
  * @param <E> the type of objects managed by this object pool
  */
-public class LinkedObjectPool<E> implements ObjectPool<E> {
+public final class LinkedObjectPool<E> implements ObjectPool<E> {
 	
 	private final LinkedObjectList<E> linkedList;
 	private final ObjectBuilder<E> builder;

@@ -29,7 +29,7 @@ import java.lang.ref.SoftReference;
  *
  * @param <E> the type of objects managed by this object pool
  */
-public class ArrayObjectPool<E> implements ObjectPool<E> {
+public final class ArrayObjectPool<E> implements ObjectPool<E> {
 	
 	/**
 	 * The default growth factor to use if not specified
@@ -232,14 +232,15 @@ public class ArrayObjectPool<E> implements ObjectPool<E> {
 		if (pointer == array.length) {
 			/*pointer = */grow(true); // pointer returned will be array length anyway!
 		}
+		final E[] a = this.array;
 		
-		E toReturn = this.array[pointer];
+		E toReturn = a[pointer];
 		if (toReturn == null) {
 			toReturn = buildObject();
 			// Lazy creation at the watermark turns exactly one untouched slot into a used slot.
 			if (pointer == high) high++;
 		} else {
-			this.array[pointer] = null;
+			a[pointer] = null;
 		}
 		pointer++;
 		return toReturn;

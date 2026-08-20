@@ -29,7 +29,7 @@ import java.lang.ref.SoftReference;
  * 
  * @param <E> the type of objects managed by this object pool
  */
-public class StackObjectPool<E> implements ObjectPool<E> {
+public final class StackObjectPool<E> implements ObjectPool<E> {
 	
 	/**
 	 * The default growth factor to use if not specified

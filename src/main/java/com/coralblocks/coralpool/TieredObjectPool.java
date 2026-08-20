@@ -27,14 +27,14 @@ package com.coralblocks.coralpool;
  * 
  * @param <E> the type of objects managed by this object pool
  */
-public class TieredObjectPool<E> implements ObjectPool<E> {
+public final class TieredObjectPool<E> implements ObjectPool<E> {
 	
 	/**
 	 * The initial size of the linked-list used for the expansion of the pool (second tier) as a factor of the initial capacity of the pool
 	 */
 	public static int LINKED_LIST_CAPACITY_FACTOR = 3;
 	
-	private E[] array;
+	private final E[] array;
 	private int pointer = 0;
 	private final ObjectBuilder<E> builder;
 	private final LinkedObjectList<E> linkedList;

@@ -246,7 +246,7 @@ class LinkedObjectList<E> implements Iterable<E> {
 		}
 	}
 	
-	private ReusableIterator reusableIter = new ReusableIterator();
+	private final ReusableIterator reusableIter = new ReusableIterator();
 	
 	/**
 	 * Return the same iterator instance (garbage-free operation)
