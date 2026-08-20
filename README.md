@@ -16,6 +16,7 @@ public interface ObjectPool<E> {
     * accommodate more instances. This method can never return null.
     * 
     * @return an instance from the pool
+    * @throws IllegalStateException if the ObjectBuilder returns null
     */
     public E get();
 
@@ -41,7 +42,7 @@ final int initialCapacity = 100;
 final int preloadCount = 50;
 
 // the pool can use an ObjectBuilder, but it can also take a Class for creating instances through
-// the default constructor
+// its no-argument constructor
 final Class<StringBuilder> klass = StringBuilder.class;
 
 // Create your object pool
@@ -65,16 +66,16 @@ An `ObjectPool` backed by an internal linked-list. It can gradually grow by addi
 ### ArrayObjectPool
 
 An `ObjectPool` backed by an internal array. It can expand by allocating a larger array. When that happens, the previous array is retained as a [SoftReference](https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/ref/SoftReference.html) to delay garbage collection as much as possible.
-You can manually release these previous array references by calling its `releaseSoftReferences()` public method.
+You can discard these retained references by calling its `discardGarbage()` public method.
 
 ### MultiArrayObjectPool
 
-An `ObjectPool` backed by an internal doubly linked-list of arrays. It expands by adding new nodes, each containing a newly allocated array, to the linked-list.
+An `ObjectPool` backed by an internal doubly linked-list of arrays. It expands without copying existing elements by adding geometrically larger arrays, which are populated lazily as `get()` reaches their slots.
 
 ### StackObjectPool
 
 An `ObjectPool` backed by an internal stack, implemented with an array. It can expand by allocating a larger stack. When that happens, the previous array of the stack is retained as a [SoftReference](https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/lang/ref/SoftReference.html) to delay garbage collection as much as possible.
-You can manually release these previous array references by calling its `releaseSoftReferences()` public method.
+You can discard these retained references by calling its `discardGarbage()` public method.
 
 ### TieredObjectPool
 
