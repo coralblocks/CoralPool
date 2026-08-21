@@ -46,7 +46,7 @@ final int preloadCount = 50;
 final Class<StringBuilder> klass = StringBuilder.class;
 
 // Create your object pool
-ObjectPool<StringBuilder> pool = new LinkedObjectPool<>(initialCapacity, preloadCount, klass);
+ObjectPool<StringBuilder> pool = new ArrayObjectPool<>(initialCapacity, preloadCount, klass);
 
 // Fetch an instance from the pool
 StringBuilder sb = pool.get();
