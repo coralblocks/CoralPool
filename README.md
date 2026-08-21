@@ -95,11 +95,11 @@ You can find the benchmarks [here](https://github.com/coralblocks/CoralPool/blob
 ### Benchmark (_without_ growth)
 
 <pre>
-LinkedObjectPool        => 9,698,254 nanoseconds
-<b>ArrayObjectPool         => 3,658,073 nanoseconds</b>     
-MultiArrayObjectPool    => 3,900,745 nanoseconds
-StackObjectPool         => 3,813,075 nanoseconds
-TieredObjectPool        => 3,786,247 nanoseconds                   
+LinkedObjectPool        => 18,154,185 nanoseconds
+<b>ArrayObjectPool         => 5,288,780 nanoseconds</b>     
+MultiArrayObjectPool    => 5,356,346 nanoseconds
+StackObjectPool         => 5,648,363 nanoseconds
+TieredObjectPool        => 5,401,350 nanoseconds                   
 </pre>
 
 The results above are expected as native arrays are faster than linked lists because they store elements in contiguous memory, enhancing cache locality and sequential access. In contrast, linked lists use scattered references across memory, leading to more cache misses and slower traversal time due to the overhead of following pointers.
@@ -107,11 +107,11 @@ The results above are expected as native arrays are faster than linked lists bec
 ### Benchmark (_with_ growth)
 
 <pre>
-LinkedObjectPool        => 241,073 microseconds
-<b>ArrayObjectPool         => 87,784 microseconds</b>     
-MultiArrayObjectPool    => 162,697 microseconds
-StackObjectPool         => 129,899 microseconds
-TieredObjectPool        => 237,377 microseconds                   
+LinkedObjectPool        => 441,145 microseconds
+<b>ArrayObjectPool         => 137,295 microseconds</b>     
+MultiArrayObjectPool    => 168,885 microseconds
+StackObjectPool         => 188,775 microseconds
+TieredObjectPool        => 424,487 microseconds                   
 </pre>
 
 The above results are expected because `TieredObjectPool` uses a linked list for growth, leading to the same cache miss inefficiencies observed in the previous benchmark _without_ growth. In contrast, `ArrayObjectPool` clearly outperforms all others, as its [growth implementation](https://github.com/coralblocks/CoralPool/blob/main/src/main/java/com/coralblocks/coralpool/ArrayObjectPool.java#L189) is more efficient by avoiding both array copying and nulling.
