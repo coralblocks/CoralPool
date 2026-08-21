@@ -139,11 +139,14 @@ public class MultiArrayObjectPoolTest {
         int initialCapacity = 2;
         int preloadCount = 0; // start with empty arrays for simplicity
         MultiArrayObjectPool<Object> pool = new MultiArrayObjectPool<>(initialCapacity, preloadCount, new TestBuilder());
+        MultiArrayObjectPool.ArrayHolder<Object> initialHolder = pool.getArrayHolder();
 
         // Initially empty, pointer starts at 0.
-        // If we release an object now, pointer will decrement and we’ll need space to the left.
+        // Releasing an external object at pointer zero must grow left immediately.
         Object testObj = "TestObj";
         pool.release(testObj);
+        Assert.assertNotSame(initialHolder, pool.getArrayHolder());
+        Assert.assertEquals(initialCapacity * 2, pool.getArrayHolder().array.length);
 
         // Now get the object back
         Object retrieved = pool.get();
@@ -151,34 +154,8 @@ public class MultiArrayObjectPoolTest {
     }
 
     @Test
-    public void testReleaseUsesNeverPopulatedSlotsBeforeGrowingLeft() {
-        // No preload leaves the complete initial holder available for net releases.
-        MultiArrayObjectPool<Object> pool = new MultiArrayObjectPool<>(2, 0, new TestBuilder());
-        MultiArrayObjectPool.ArrayHolder<Object> initialHolder = pool.getArrayHolder();
-        Object first = new Object();
-        Object second = new Object();
-        Object third = new Object();
-
-        // The first two objects must use untouched slots without allocating a holder.
-        pool.release(first);
-        pool.release(second);
-        Assert.assertSame(initialHolder, pool.getArrayHolder());
-
-        // The third object requires growth, and all three identities must remain pooled.
-        pool.release(third);
-        Assert.assertNotSame(initialHolder, pool.getArrayHolder());
-        Assert.assertEquals(4, pool.getArrayHolder().array.length);
-        Assert.assertSame(third, pool.get());
-
-        Object next = pool.get();
-        Object last = pool.get();
-        Assert.assertTrue((next == first && last == second) || (next == second && last == first));
-    }
-
-    @Test
     public void testGrowToLeftTraversesGeometricArraySizes() {
-        // A full preload isolates geometric left growth from untouched-tail reuse.
-        MultiArrayObjectPool<Object> pool = new MultiArrayObjectPool<>(2, new TestBuilder());
+        MultiArrayObjectPool<Object> pool = new MultiArrayObjectPool<>(2, 0, new TestBuilder());
         Object[] released = new Object[5];
 
         for (int i = 0; i < released.length; i++) {

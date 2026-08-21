@@ -40,24 +40,6 @@ public class ArrayObjectPoolReleaseTest {
     }
 
     @Test
-    public void testReleaseUsesNeverPopulatedSlotsBeforeGrowing() {
-        // No preload leaves both initial slots available to the watermark strategy.
-        ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(2, 0, new IntegerBuilder(), 2.0f);
-
-        // Filling untouched slots must not allocate a larger backing array.
-        pool.release(10);
-        pool.release(20);
-        assertEquals(2, pool.getArrayLength());
-
-        // Once the untouched tail is full, growth must preserve every released object.
-        pool.release(30);
-        assertEquals(4, pool.getArrayLength());
-        assertEquals((Integer) 30, pool.get());
-        assertEquals((Integer) 10, pool.get());
-        assertEquals((Integer) 20, pool.get());
-    }
-
-    @Test
     public void testReleaseWithoutGrow() {
         // Initial capacity: 5, preload: 3 (so indices [0,1,2] have preloaded objects)
         ArrayObjectPool<Integer> pool = new ArrayObjectPool<>(5, 3, new IntegerBuilder());

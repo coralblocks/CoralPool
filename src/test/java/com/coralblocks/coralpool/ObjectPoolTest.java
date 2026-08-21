@@ -194,13 +194,13 @@ public class ObjectPoolTest {
         
     @Test
     public void testArrayObjectPoolReleasingWhenEmpty() {
-        // An external release must use the existing empty allocation and remain retrievable.
+        // A net external release grows the pool on the left and remains retrievable.
         ArrayObjectPool<StringBuilder> pool = new ArrayObjectPool<StringBuilder>(5, 0, ObjectBuilder.createBuilder(StringBuilder.class));
         StringBuilder external = new StringBuilder();
 
         pool.release(external);
 
-        assertEquals(5, pool.getArrayLength());
+        assertEquals(8, pool.getArrayLength());
         assertSame(external, pool.get());
     }
 

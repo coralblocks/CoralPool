@@ -45,15 +45,6 @@ public final class ArrayObjectPool<E> implements ObjectPool<E> {
 	
 	private E[] array;
 	private int pointer = 0;
-	/*
-	 * Available objects occupy [pointer, high), while the tail from high to the
-	 * end has never been populated. When pointer is zero, a net external release
-	 * can use that tail before growth. This keeps the populated-slot hot path
-	 * unchanged and avoids an O(n) array allocation and copy for partially
-	 * preloaded pools. The appended object follows the already-available objects;
-	 * ObjectPool intentionally makes no object-return-order guarantee.
-	 */
-	private int high;
 	private final ObjectBuilder<E> builder;
 	private final float growthFactor;
 	private final LinkedObjectList<Object> trashBin = new LinkedObjectList<Object>(TRASH_LINKED_LIST_INITIAL_SIZE);
@@ -150,8 +141,6 @@ public final class ArrayObjectPool<E> implements ObjectPool<E> {
 		for(int i = 0; i < preloadCount; i++) {
 			this.array[i] = builder.newInstance();
 		}
-		// Only preloaded slots have participated in the pool at construction time.
-		this.high = preloadCount;
 		this.builder = builder;
 	}
 	
@@ -212,8 +201,6 @@ public final class ArrayObjectPool<E> implements ObjectPool<E> {
 		if (!growRight) {
 			offset = newArray.length - this.array.length; // shift to the the very end
 			System.arraycopy(this.array, 0, newArray, offset, this.array.length);
-			// Left growth places the live region at the end, leaving no unused right tail.
-			high = newArray.length;
 			// Under normal pool usage, checked-out objects remain in use or are returned.
 			// Leave the old array uncleared to avoid a second O(n) pass => DO NOT NULLIFY THE ARRAY
 			// abandoned checkouts may remain reachable until soft clearing or discardGarbage().
@@ -239,8 +226,6 @@ public final class ArrayObjectPool<E> implements ObjectPool<E> {
 		E toReturn = a[pointer];
 		if (toReturn == null) {
 			toReturn = buildObject();
-			// Lazy creation at the watermark turns exactly one untouched slot into a used slot.
-			if (pointer == high) high++;
 		} else {
 			a[pointer] = null;
 		}
@@ -260,12 +245,6 @@ public final class ArrayObjectPool<E> implements ObjectPool<E> {
 		ensureNotNull(object);
 		
 		if (pointer == 0) {
-			// A net release can occupy untouched initial capacity instead of forcing growth.
-			if (high < array.length) {
-				array[high++] = object;
-				// The cursor stays at zero so existing available objects are returned first.
-				return;
-			}
 			pointer = grow(false);
 		}
 		this.array[--pointer] = object;
