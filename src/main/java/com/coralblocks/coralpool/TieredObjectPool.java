@@ -95,7 +95,7 @@ public final class TieredObjectPool<E> implements ObjectPool<E> {
 	 * @param builder the {@code ObjectBuilder} of the pool
 	 */
 	public TieredObjectPool(int initialCapacity, int preloadCount, ObjectBuilder<E> builder) {
-		this(initialCapacity, preloadCount, builder, calculateDefaultLinkedListCapacity(initialCapacity, preloadCount));
+		this(initialCapacity, preloadCount, builder, initialCapacity * LINKED_LIST_CAPACITY_FACTOR);
 	}
 
 	/**
@@ -117,18 +117,6 @@ public final class TieredObjectPool<E> implements ObjectPool<E> {
 		this.linkedList = new LinkedObjectList<E>(linkedListInitialCapacity);
 	}
 	
-	static int calculateDefaultLinkedListCapacity(int initialCapacity, int preloadCount) {
-		// Preserve constructor validation order before calculating the derived capacity.
-		check(initialCapacity, preloadCount, 0);
-
-		long linkedListInitialCapacity = (long) initialCapacity * LINKED_LIST_CAPACITY_FACTOR;
-		if (linkedListInitialCapacity > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("initialCapacity (" + initialCapacity
-					+ ") is too large to calculate the default linked-list capacity");
-		}
-		return (int) linkedListInitialCapacity;
-	}
-
 	private static void check(int initialCapacity, int preloadCount, int linkedListInitialCapacity) {
 		if (initialCapacity < 1) {
 			throw new IllegalArgumentException("initialCapacity (" + initialCapacity + ") must be greater than zero");

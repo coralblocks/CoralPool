@@ -35,23 +35,6 @@ public class TieredObjectPoolCapacityTest {
 	}
 
 	@Test
-	public void calculatesDefaultLinkedListCapacityWithoutIntOverflow() {
-		assertEquals(15, TieredObjectPool.calculateDefaultLinkedListCapacity(5, 0));
-	}
-
-	@Test
-	public void rejectsOverflowingDefaultLinkedListCapacity() {
-		int overflowingInitialCapacity = Integer.MAX_VALUE / TieredObjectPool.LINKED_LIST_CAPACITY_FACTOR + 1;
-		try {
-			new TieredObjectPool<Object>(overflowingInitialCapacity, 0, BUILDER);
-			fail("Expected IllegalArgumentException");
-		} catch (IllegalArgumentException expected) {
-			assertEquals("initialCapacity (" + overflowingInitialCapacity
-					+ ") is too large to calculate the default linked-list capacity", expected.getMessage());
-		}
-	}
-
-	@Test
 	public void acceptsExplicitZeroLinkedListCapacityWithClass() {
 		TieredObjectPool<Object> pool = new TieredObjectPool<Object>(1, 1, Object.class, 0);
 		Object pooled = pool.get();
