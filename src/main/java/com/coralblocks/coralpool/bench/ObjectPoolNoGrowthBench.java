@@ -38,7 +38,8 @@ public class ObjectPoolNoGrowthBench {
 		final int preloadCount = args.length > 2 ? Integer.parseInt(args[2]) : initialCapacity;
 		final int passes = args.length > 3 ? Integer.parseInt(args[3]) : 1_000;
 		
-		final Object object = new Object();
+		final Object[] builderObjects = createObjects(initialCapacity);
+		final Object[] acquiredObjectsFromPool = new Object[initialCapacity];
 		
 		System.out.println();
 
@@ -52,18 +53,16 @@ public class ObjectPoolNoGrowthBench {
 		
 		for(int y = 0; y <= passes; y++) { // first pass (0) is warmup
 			
-			ObjectPool<Object> pool = createObjectPool(type ,initialCapacity, preloadCount, object);
+			ObjectPool<Object> pool = createObjectPool(type ,initialCapacity, preloadCount, builderObjects);
 		
 			long start = System.nanoTime();
 			
-			Object obj = null;
-			
 			for(int i = 1; i <= initialCapacity; i++) {
 				for(int x = 0; x < i; x++) {
-					obj = pool.get();
+					acquiredObjectsFromPool[x] = pool.get();
 				}
 				for(int x = 0; x < i; x++) {
-					pool.release(obj);
+					pool.release(acquiredObjectsFromPool[x]);
 				}
 			}
 			
@@ -79,12 +78,24 @@ public class ObjectPoolNoGrowthBench {
 		System.out.println();
 	}
 	
-	private static ObjectPool<Object> createObjectPool(Type type, int initialCapacity, int preloadCount, final Object object) {
+	private static Object[] createObjects(int count) {
+		Object[] objects = new Object[count];
+		for(int i = 0; i < count; i++) {
+			objects[i] = new Object();
+		}
+		return objects;
+	}
+
+	private static ObjectPool<Object> createObjectPool(Type type, int initialCapacity, int preloadCount, final Object[] builderObjects) {
 		
+		// Return distinct objects allocated before the benchmark to isolate pool mechanics without allocation latency.
 		ObjectBuilder<Object> builder = new ObjectBuilder<Object>() {
+			
+			private int index = 0;
+
 			@Override
 			public Object newInstance() {
-				return object;
+				return builderObjects[index++];
 			}
 		};
 		
