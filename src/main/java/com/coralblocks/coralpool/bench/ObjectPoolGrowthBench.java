@@ -28,6 +28,9 @@ import com.coralblocks.coralpool.TieredObjectPool;
 public class ObjectPoolGrowthBench {
 
 	private static enum Type { LINKED, ARRAY, MULTI, STACK, TIERED }
+
+	// Give the JIT time to compile the exercised paths before any samples contribute to the result.
+	private static final int DEFAULT_WARMUP_PASSES = 50;
 	
 	private static final DecimalFormat FORMATTER = new DecimalFormat("#,###");
 	
@@ -37,7 +40,11 @@ public class ObjectPoolGrowthBench {
 		final int initialCapacity = args.length > 1 ? Integer.parseInt(args[1]) : 100;
 		final int preloadCount = args.length > 2 ? Integer.parseInt(args[2]) : initialCapacity;
 		final int passes = args.length > 3 ? Integer.parseInt(args[3]) : 500;
-		final int maxBorrowedObjects = Math.multiplyExact(initialCapacity, 100);
+		final int warmupPasses = args.length > 4 ? Integer.parseInt(args[4]) : DEFAULT_WARMUP_PASSES;
+		if (passes <= 0) throw new IllegalArgumentException("Passes must be greater than zero: " + passes);
+		if (warmupPasses < 0) throw new IllegalArgumentException("Warmup passes cannot be negative: " + warmupPasses);
+		final int totalPasses = warmupPasses + passes;
+		final int maxBorrowedObjects = initialCapacity * 100;
 		
 		final Object[] builderObjects = createObjects(maxBorrowedObjects);
 		final Object[] acquiredObjectsFromPool = new Object[maxBorrowedObjects];
@@ -48,11 +55,12 @@ public class ObjectPoolGrowthBench {
 				           " initialCapacity=" + initialCapacity + 
 				           " preloadCount=" + preloadCount +
 				           " passes=" + passes +
+				           " warmupPasses=" + warmupPasses +
 				           "\n");
 		
 		long totalTime = 0;
 		
-		for(int y = 0; y <= passes; y++) { // first pass (0) is warmup
+		for(int y = 0; y < totalPasses; y++) {
 			
 			ObjectPool<Object> pool = createObjectPool(type ,initialCapacity, preloadCount, builderObjects);
 		
@@ -74,10 +82,15 @@ public class ObjectPoolGrowthBench {
 			time = time / 1_000; // micros...
 			if (time == 0) time = 1;
 			
-			if (y > 0) totalTime += time;
-			
-			System.out.print("\rPass: ");
-			System.out.print(y);
+			// Warmup samples exercise the same code but are excluded so JIT compilation does not skew the average.
+			if (y >= warmupPasses) totalTime += time;
+
+			if (y < warmupPasses) {
+				System.out.print("\rWarmup pass: " + (y + 1) + "/" + warmupPasses);
+			} else {
+				if (y == warmupPasses && warmupPasses > 0) System.out.println();
+				System.out.print("\rMeasured pass: " + (y - warmupPasses + 1) + "/" + passes);
+			}
 		}
 
 		System.out.println("\n\n" + FORMATTER.format(totalTime / passes) + " microseconds (passes=" + passes + ")");
